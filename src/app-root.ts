@@ -15,15 +15,15 @@ export class AppRoot extends LitElement {
   `;
   private router = new Router(this, [
     {
-      path: "/vertical-example",
+      path: "/wc-resizer/vertical-example",
       render: () => html`<vertical-example></vertical-example>`,
     },
     {
-      path: "/horizontal-example",
+      path: "/wc-resizer/horizontal-example",
       render: () => html`<horizontal-example></horizontal-example>`,
     },
     {
-      path: "/",
+      path: "/wc-resizer/",
       render: () => {
         return html`<p>Welcome to Home</p>`;
       },

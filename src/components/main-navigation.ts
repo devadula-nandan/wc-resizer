@@ -13,9 +13,9 @@ export class MainNavigation extends LitElement {
   render() {
     return html`
       <nav>
-        <a href="/">Home</a>
-        <a href="/vertical-example">Vertical Example</a>
-        <a href="/horizontal-example">Horizontal Example</a>
+        <a href="/wc-resizer/">Home</a>
+        <a href="/wc-resizer/vertical-example">Vertical Example</a>
+        <a href="/wc-resizer/horizontal-example">Horizontal Example</a>
       </nav>
     `;
   }

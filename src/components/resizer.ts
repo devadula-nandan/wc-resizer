@@ -11,7 +11,7 @@ import { customElement, property } from "lit/decorators.js";
  * Types
  * ──────────────────────────────── */
 
-type MousePosition = {
+type PointerPosition = {
   x: number;
   y: number;
 };
@@ -36,8 +36,10 @@ export class WcResizer extends LitElement {
   @property({ type: Object }) bottomNode: HTMLElement | null = null;
   @property({ type: Object }) leftNode: HTMLElement | null = null;
   @property({ type: Object }) rightNode: HTMLElement | null = null;
-  @property({ reflect: true }) orientation: "vertical" | "horizontal" | null =
-    "horizontal";
+
+  @property({ reflect: true })
+  orientation: "vertical" | "horizontal" | null = "horizontal";
+
   @property({ type: Boolean }) bounded = false;
   @property({ type: Boolean }) fluid = false;
 
@@ -46,15 +48,16 @@ export class WcResizer extends LitElement {
    * ──────────────────────────────── */
 
   private dragging = false;
-  private initialMousePos: MousePosition | null = null;
+  private activePointerId: number | null = null;
+  private initialPointerPos: PointerPosition | null = null;
   private currentSizes: CurrentSizes | null = null;
 
   constructor() {
     super();
 
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onPointerDown = this.onPointerDown.bind(this);
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerUp = this.onPointerUp.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
 
     this.tabIndex = 0;
@@ -63,17 +66,20 @@ export class WcResizer extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener("mousedown", this.onMouseDown);
+    this.addEventListener("pointerdown", this.onPointerDown);
+    this.addEventListener("pointermove", this.onPointerMove);
+    this.addEventListener("pointerup", this.onPointerUp);
+    this.addEventListener("pointercancel", this.onPointerUp);
     this.addEventListener("dblclick", this.onDoubleClick);
-    window.addEventListener("mouseup", this.onMouseUp);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener("mousedown", this.onMouseDown);
+    this.removeEventListener("pointerdown", this.onPointerDown);
+    this.removeEventListener("pointermove", this.onPointerMove);
+    this.removeEventListener("pointerup", this.onPointerUp);
+    this.removeEventListener("pointercancel", this.onPointerUp);
     this.removeEventListener("dblclick", this.onDoubleClick);
-    window.removeEventListener("mouseup", this.onMouseUp);
-    window.removeEventListener("mousemove", this.onMouseMove);
   }
 
   willUpdate(changedProps: Map<string, unknown>) {
@@ -103,14 +109,16 @@ export class WcResizer extends LitElement {
   }
 
   /* ────────────────────────────────
-   * Event handlers
+   * Pointer handlers
    * ──────────────────────────────── */
 
-  onMouseDown(event: MouseEvent) {
+  onPointerDown(event: PointerEvent) {
     event.preventDefault();
 
     this.dragging = true;
-    this.initialMousePos = { x: event.clientX, y: event.clientY };
+    this.activePointerId = event.pointerId;
+    this.initialPointerPos = { x: event.clientX, y: event.clientY };
+
     this.currentSizes = {
       topHeight: this.topNode?.offsetHeight,
       bottomHeight: this.bottomNode?.offsetHeight,
@@ -118,37 +126,28 @@ export class WcResizer extends LitElement {
       rightWidth: this.rightNode?.offsetWidth,
     };
 
+    this.setPointerCapture(event.pointerId);
     document.body.style.userSelect = "none";
-    window.addEventListener("mousemove", this.onMouseMove);
   }
 
-  onMouseMove(event: MouseEvent) {
-    if (!this.dragging || !this.initialMousePos || !this.currentSizes) return;
+  onPointerMove(event: PointerEvent) {
+    if (
+      !this.dragging ||
+      event.pointerId !== this.activePointerId ||
+      !this.initialPointerPos ||
+      !this.currentSizes
+    ) {
+      return;
+    }
 
-    const dx = event.clientX - this.initialMousePos.x;
-    const dy = event.clientY - this.initialMousePos.y;
+    const dx = event.clientX - this.initialPointerPos.x;
+    const dy = event.clientY - this.initialPointerPos.y;
 
     if (this.bounded) {
-      if (
-        this.currentSizes.topHeight !== undefined &&
-        this.currentSizes.topHeight + dy < 0
-      )
-        return;
-      if (
-        this.currentSizes.bottomHeight !== undefined &&
-        this.currentSizes.bottomHeight - dy < 0
-      )
-        return;
-      if (
-        this.currentSizes.leftWidth !== undefined &&
-        this.currentSizes.leftWidth + dx < 0
-      )
-        return;
-      if (
-        this.currentSizes.rightWidth !== undefined &&
-        this.currentSizes.rightWidth - dx < 0
-      )
-        return;
+      if (this.currentSizes.topHeight !== undefined && this.currentSizes.topHeight + dy < 0) return;
+      if (this.currentSizes.bottomHeight !== undefined && this.currentSizes.bottomHeight - dy < 0) return;
+      if (this.currentSizes.leftWidth !== undefined && this.currentSizes.leftWidth + dx < 0) return;
+      if (this.currentSizes.rightWidth !== undefined && this.currentSizes.rightWidth - dx < 0) return;
     }
 
     if (this.topNode && this.currentSizes.topHeight !== undefined) {
@@ -165,13 +164,16 @@ export class WcResizer extends LitElement {
     }
   }
 
-  onMouseUp() {
+  onPointerUp(event: PointerEvent) {
+    if (event.pointerId !== this.activePointerId) return;
+
     this.dragging = false;
-    this.initialMousePos = null;
+    this.activePointerId = null;
+    this.initialPointerPos = null;
     this.currentSizes = null;
 
+    this.releasePointerCapture(event.pointerId);
     document.body.style.userSelect = "";
-    window.removeEventListener("mousemove", this.onMouseMove);
   }
 
   onDoubleClick() {
@@ -196,6 +198,7 @@ export class WcResizer extends LitElement {
       user-select: none;
       position: relative;
       cursor: grab;
+      touch-action: none;
     }
 
     :host::before {
