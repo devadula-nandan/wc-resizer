@@ -1,17 +1,20 @@
 {
-  "name": "resizer111111111111111111111111111111111111111111111111111111111",
+  "name": "wc-resizer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
+    "@lit-labs/router": "^0.1.4",
     "lit": "^3.3.1"
   },
   "devDependencies": {
+    "gh-pages": "^6.1.1",
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
   }

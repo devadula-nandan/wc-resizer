@@ -23,14 +23,3 @@ body {
     background-color: #ffffff;
   }
 }
-
-.el {
-  height: 200px;
-  width: 200px;
-  background-color: #ffffff31;
-  overflow: auto;
-}
-
-wc-resizer {
-  background: gray;
-}
