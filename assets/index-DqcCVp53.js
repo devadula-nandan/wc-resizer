@@ -96,7 +96,7 @@
       background: gray;
     }
   `;let B=et;customElements.define("horizontal-example",B);const it=class it extends f{connectedCallback(){super.connectedCallback(),this.updateComplete.then(()=>{const t=this.renderRoot.querySelector("#ex-1"),e=this.renderRoot.querySelector("#ex-2"),i=this.renderRoot.querySelector("#ex-axis"),s=this.renderRoot.querySelector("#el-1"),r=this.renderRoot.querySelector("#el-2"),n=this.renderRoot.querySelector("#el-3"),l=this.renderRoot.querySelector("#el-4");t.leftNode=s,t.rightNode=r,e.topNode=n,e.bottomNode=l,i.leftNode=s,i.rightNode=r,i.topNode=n,i.bottomNode=l})}render(){return p`
-      <div class="container" style="display: inline-flex;">
+      <div class="container c-1" style="display: inline-flex;">
         <div id="el-1">element 1</div>
         <wc-resizer id="ex-1" bounded> </wc-resizer>
         <div class="container" id="el-2" style="display: inline-flex; flex-direction: column;">
@@ -131,16 +131,28 @@
     }
 
     #ex-axis {
-      block-size: 8px;
-      inline-size: 8px;
-      background: yellow;
+      block-size: 4px;
+      inline-size: 4px;
+      background: #ffffff;
       position: absolute;
       z-index: 10;
-      top: -2px;
-      left: -2px;
+      margin-left: -4px;
       cursor: move;
+
+      &::before {
+        content: "";
+        block-size: 12px;
+        inline-size: 12px;
+        background: transparent;
+        position: absolute;
+        inset: 50%;
+        /* background-color: #ffffff13; */
+        background-color: transparent;
+        transform: translate(-50%, -50%);
+      }
     }
-    #ex-1-2{
+
+    .c-1 {
       position: relative;
     }
 
