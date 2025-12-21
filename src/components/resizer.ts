@@ -210,7 +210,7 @@ export class WcResizer extends LitElement {
 
     /* ───────── Vertical ───────── */
     :host([orientation="vertical"]) {
-      cursor: row-resize;
+      cursor: n-resize;
     }
 
     :host([orientation="vertical"])::before {
@@ -221,7 +221,7 @@ export class WcResizer extends LitElement {
 
     /* ───────── Horizontal ───────── */
     :host([orientation="horizontal"]) {
-      cursor: col-resize;
+      cursor: e-resize;
     }
 
     :host([orientation="horizontal"])::before {

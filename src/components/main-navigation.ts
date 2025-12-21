@@ -16,6 +16,7 @@ export class MainNavigation extends LitElement {
         <a href="/wc-resizer/">Home</a>
         <a href="/wc-resizer/vertical-example">Vertical Example</a>
         <a href="/wc-resizer/horizontal-example">Horizontal Example</a>
+        <a href="/wc-resizer/axis-example">Axis Example</a>
       </nav>
     `;
   }
