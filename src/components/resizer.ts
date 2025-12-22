@@ -23,15 +23,12 @@ type CurrentSizes = {
   rightWidth?: number;
 };
 
-/**
- * A drag resizer that adjusts nearby elements when dragged.
- */
+/* ────────────────────────────────
+ * Component
+ * ──────────────────────────────── */
+
 @customElement("wc-resizer")
 export class WcResizer extends LitElement {
-  /* ────────────────────────────────
-   * Public properties
-   * ──────────────────────────────── */
-
   @property({ type: Object }) topNode: HTMLElement | null = null;
   @property({ type: Object }) bottomNode: HTMLElement | null = null;
   @property({ type: Object }) leftNode: HTMLElement | null = null;
@@ -42,10 +39,6 @@ export class WcResizer extends LitElement {
 
   @property({ type: Boolean }) bounded = false;
   @property({ type: Boolean }) fluid = false;
-
-  /* ────────────────────────────────
-   * Internal state
-   * ──────────────────────────────── */
 
   private dragging = false;
   private activePointerId: number | null = null;
@@ -82,29 +75,28 @@ export class WcResizer extends LitElement {
     this.removeEventListener("dblclick", this.onDoubleClick);
   }
 
-  willUpdate(changedProps: Map<string, unknown>) {
+  willUpdate(changed: Map<string, unknown>) {
     if (
-      changedProps.has("topNode") ||
-      changedProps.has("bottomNode") ||
-      changedProps.has("leftNode") ||
-      changedProps.has("rightNode")
+      changed.has("topNode") ||
+      changed.has("bottomNode") ||
+      changed.has("leftNode") ||
+      changed.has("rightNode")
     ) {
-      const isVertical =
-        (this.topNode || this.bottomNode) && !this.leftNode && !this.rightNode;
+      const vertical =
+        (this.topNode || this.bottomNode) &&
+        !this.leftNode &&
+        !this.rightNode;
 
-      const isHorizontal =
-        (this.leftNode || this.rightNode) && !this.topNode && !this.bottomNode;
+      const horizontal =
+        (this.leftNode || this.rightNode) &&
+        !this.topNode &&
+        !this.bottomNode;
 
-      const nextOrientation = isVertical
+      this.orientation = vertical
         ? "vertical"
-        : isHorizontal
+        : horizontal
         ? "horizontal"
         : null;
-
-      // Avoid unnecessary updates
-      if (this.orientation !== nextOrientation) {
-        this.orientation = nextOrientation;
-      }
     }
   }
 
@@ -112,12 +104,12 @@ export class WcResizer extends LitElement {
    * Pointer handlers
    * ──────────────────────────────── */
 
-  onPointerDown(event: PointerEvent) {
-    event.preventDefault();
+  onPointerDown(e: PointerEvent) {
+    e.preventDefault();
 
     this.dragging = true;
-    this.activePointerId = event.pointerId;
-    this.initialPointerPos = { x: event.clientX, y: event.clientY };
+    this.activePointerId = e.pointerId;
+    this.initialPointerPos = { x: e.clientX, y: e.clientY };
 
     this.currentSizes = {
       topHeight: this.topNode?.offsetHeight,
@@ -126,53 +118,79 @@ export class WcResizer extends LitElement {
       rightWidth: this.rightNode?.offsetWidth,
     };
 
-    this.setPointerCapture(event.pointerId);
+    this.setPointerCapture(e.pointerId);
     document.body.style.userSelect = "none";
   }
 
-  onPointerMove(event: PointerEvent) {
+  onPointerMove(e: PointerEvent) {
     if (
       !this.dragging ||
-      event.pointerId !== this.activePointerId ||
+      e.pointerId !== this.activePointerId ||
       !this.initialPointerPos ||
       !this.currentSizes
     ) {
       return;
     }
 
-    const dx = event.clientX - this.initialPointerPos.x;
-    const dy = event.clientY - this.initialPointerPos.y;
+    const rawDx = e.clientX - this.initialPointerPos.x;
+    const rawDy = e.clientY - this.initialPointerPos.y;
 
-    if (this.bounded) {
-      if (this.currentSizes.topHeight !== undefined && this.currentSizes.topHeight + dy < 0) return;
-      if (this.currentSizes.bottomHeight !== undefined && this.currentSizes.bottomHeight - dy < 0) return;
-      if (this.currentSizes.leftWidth !== undefined && this.currentSizes.leftWidth + dx < 0) return;
-      if (this.currentSizes.rightWidth !== undefined && this.currentSizes.rightWidth - dx < 0) return;
+    let dx = rawDx;
+    let dy = rawDy;
+
+    /* ───────── Horizontal clamp (left/right) ───────── */
+    if (
+      this.bounded &&
+      this.currentSizes.leftWidth !== undefined &&
+      this.currentSizes.rightWidth !== undefined
+    ) {
+      const minDx = -this.currentSizes.leftWidth;
+      const maxDx = this.currentSizes.rightWidth;
+      dx = Math.min(maxDx, Math.max(minDx, rawDx));
     }
 
+    /* ───────── Vertical clamp (top/bottom) ───────── */
+    if (
+      this.bounded &&
+      this.currentSizes.topHeight !== undefined &&
+      this.currentSizes.bottomHeight !== undefined
+    ) {
+      const minDy = -this.currentSizes.topHeight;
+      const maxDy = this.currentSizes.bottomHeight;
+      dy = Math.min(maxDy, Math.max(minDy, rawDy));
+    }
+
+    /* ───────── Apply sizes ───────── */
     if (this.topNode && this.currentSizes.topHeight !== undefined) {
-      this.topNode.style.blockSize = `${this.currentSizes.topHeight + dy}px`;
+      this.topNode.style.blockSize =
+        `${this.currentSizes.topHeight + dy}px`;
     }
+
     if (this.bottomNode && this.currentSizes.bottomHeight !== undefined) {
-      this.bottomNode.style.blockSize = `${this.currentSizes.bottomHeight - dy}px`;
+      this.bottomNode.style.blockSize =
+        `${this.currentSizes.bottomHeight - dy}px`;
     }
+
     if (this.leftNode && this.currentSizes.leftWidth !== undefined) {
-      this.leftNode.style.inlineSize = `${this.currentSizes.leftWidth + dx}px`;
+      this.leftNode.style.inlineSize =
+        `${this.currentSizes.leftWidth + dx}px`;
     }
+
     if (this.rightNode && this.currentSizes.rightWidth !== undefined) {
-      this.rightNode.style.inlineSize = `${this.currentSizes.rightWidth - dx}px`;
+      this.rightNode.style.inlineSize =
+        `${this.currentSizes.rightWidth - dx}px`;
     }
   }
 
-  onPointerUp(event: PointerEvent) {
-    if (event.pointerId !== this.activePointerId) return;
+  onPointerUp(e: PointerEvent) {
+    if (e.pointerId !== this.activePointerId) return;
 
     this.dragging = false;
     this.activePointerId = null;
     this.initialPointerPos = null;
     this.currentSizes = null;
 
-    this.releasePointerCapture(event.pointerId);
+    this.releasePointerCapture(e.pointerId);
     document.body.style.userSelect = "";
   }
 
@@ -195,10 +213,10 @@ export class WcResizer extends LitElement {
       display: block;
       min-block-size: 4px;
       min-inline-size: 4px;
-      user-select: none;
       position: relative;
       cursor: grab;
       touch-action: none;
+      user-select: none;
     }
 
     :host::before {
@@ -208,7 +226,6 @@ export class WcResizer extends LitElement {
       background: #ffffff13;
     }
 
-    /* ───────── Vertical ───────── */
     :host([orientation="vertical"]) {
       cursor: n-resize;
     }
@@ -219,7 +236,6 @@ export class WcResizer extends LitElement {
       inline-size: 100%;
     }
 
-    /* ───────── Horizontal ───────── */
     :host([orientation="horizontal"]) {
       cursor: e-resize;
     }
@@ -242,10 +258,6 @@ export class WcResizer extends LitElement {
     }
   `;
 }
-
-/* ────────────────────────────────
- * Global typings
- * ──────────────────────────────── */
 
 declare global {
   interface HTMLElementTagNameMap {

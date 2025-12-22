@@ -7,23 +7,23 @@ class AxisExample extends LitElement {
       height: 400px;
       width: 298px;
       background-color: #ffffff31;
-      overflow: auto;
+      overflow: hidden;
     }
     #el-2 {
       height: 400px;
       width: 298px;
       background-color: #ffffff31;
-      overflow: auto;
+      overflow: hidden;
     }
     #el-3 {
       height: 198px;
       background-color: #ffffff31;
-      overflow: auto;
+      overflow: hidden;
     }
     #el-4 {
       height: 198px;
       background-color: #ffffff31;
-      overflow: auto;
+      overflow: hidden;
     }
 
     #ex-axis {
