@@ -5,7 +5,7 @@ import "./components/main-navigation";
 import "./components/resizer";
 import "./pages/vertical-example";
 import "./pages/horizontal-example";
-import "./pages/axis-example";
+import "./pages/pivot-example";
 
 @customElement("app-root")
 export class AppRoot extends LitElement {
@@ -24,8 +24,8 @@ export class AppRoot extends LitElement {
       render: () => html`<horizontal-example></horizontal-example>`,
     },
     {
-      path: "/wc-resizer/axis-example",
-      render: () => html`<axis-example></axis-example>`,
+      path: "/wc-resizer/pivot-example",
+      render: () => html`<pivot-example></pivot-example>`,
     },
     {
       path: "/wc-resizer/",

@@ -7,6 +7,20 @@ import { customElement, property } from "lit/decorators.js";
 
 // grid-template: "sidebar content content" 1fr "sidebar panel panel" minmax(0px, 300px) / minmax(0px, 266px) minmax(100px, 1fr) minmax(0px, 400px)
 
+// If one node is provided, it's an overlay panel or a panel that influences the layout.
+// It resizes the inline/block size of that node.
+//
+// If two nodes are provided, they are split panels. They are resized using grid-template adjustments.
+// In this case, the node containing the `data-panel-fixed` attribute must have a fixed grid-template size
+// (px, rem, etc.), so the container can adjust the other panel accordingly.
+// One panel is fixed-size; the other is fluid.
+//
+// If four nodes are provided, it's a pivot resizer. It resizes all four nodes accordingly.
+// The nodes containing the `data-panel-fixed` attribute must have a fixed grid-template size
+// (px, rem, etc.), so the container can adjust the other panels accordingly.
+// The panel containing `data-panel-fixed` is fixed-size; the other panels are fluid.
+
+
 /* ────────────────────────────────
  * Types
  * ──────────────────────────────── */

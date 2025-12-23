@@ -1,7 +1,7 @@
 import { LitElement, css, html } from "lit";
 import "../components/resizer";
 
-class AxisExample extends LitElement {
+class PivotExample extends LitElement {
   static styles = css`
     #el-1 {
       height: 400px;
@@ -26,7 +26,7 @@ class AxisExample extends LitElement {
       overflow: hidden;
     }
 
-    #ex-axis {
+    #ex-pivot {
       block-size: 4px;
       inline-size: 4px;
       background: #ffffff;
@@ -60,15 +60,15 @@ class AxisExample extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const resizer1 = this.renderRoot.querySelector("#ex-1") as HTMLElement & {
+      const horizontalResizer = this.renderRoot.querySelector("#ex-1") as HTMLElement & {
         leftNode: HTMLElement;
         rightNode: HTMLElement;
       };
-      const resizer2 = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
+      const verticalResizer = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
         topNode: HTMLElement;
         bottomNode: HTMLElement;
       };
-      const resizerAxis = this.renderRoot.querySelector("#ex-axis") as HTMLElement & {
+      const resizerAxis = this.renderRoot.querySelector("#ex-pivot") as HTMLElement & {
         leftNode: HTMLElement;
         rightNode: HTMLElement;
         topNode: HTMLElement;
@@ -79,10 +79,10 @@ class AxisExample extends LitElement {
       const el3 = this.renderRoot.querySelector("#el-3") as HTMLElement;
       const el4 = this.renderRoot.querySelector("#el-4") as HTMLElement;
 
-      resizer1.leftNode = el1;
-      resizer1.rightNode = el2;
-      resizer2.topNode = el3;
-      resizer2.bottomNode = el4;
+      horizontalResizer.leftNode = el1;
+      horizontalResizer.rightNode = el2;
+      verticalResizer.topNode = el3;
+      verticalResizer.bottomNode = el4;
 
       resizerAxis.leftNode = el1;
       resizerAxis.rightNode = el2;
@@ -98,7 +98,7 @@ class AxisExample extends LitElement {
         <wc-resizer id="ex-1" bounded> </wc-resizer>
         <div class="container" id="el-2" style="display: inline-flex; flex-direction: column;">
           <div id="el-3">element 3</div>
-         <div id="ex-1-2"> <wc-resizer id="ex-axis" bounded> </wc-resizer>
+         <div id="ex-1-2"> <wc-resizer id="ex-pivot" bounded> </wc-resizer>
           <wc-resizer id="ex-2" orientation="vertical" bounded> </wc-resizer></div>
           <div id="el-4">element 4</div>
         </div>
@@ -107,4 +107,4 @@ class AxisExample extends LitElement {
   }
 }
 
-customElements.define("axis-example", AxisExample);
+customElements.define("pivot-example", PivotExample);
