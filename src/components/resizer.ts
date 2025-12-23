@@ -214,7 +214,6 @@ export class WcResizer extends LitElement {
       min-block-size: 4px;
       min-inline-size: 4px;
       position: relative;
-      cursor: grab;
       touch-action: none;
       user-select: none;
     }
@@ -227,7 +226,7 @@ export class WcResizer extends LitElement {
     }
 
     :host([orientation="vertical"]) {
-      cursor: n-resize;
+      cursor: row-resize;
     }
 
     :host([orientation="vertical"])::before {
@@ -237,7 +236,7 @@ export class WcResizer extends LitElement {
     }
 
     :host([orientation="horizontal"]) {
-      cursor: e-resize;
+      cursor: col-resize;
     }
 
     :host([orientation="horizontal"])::before {
@@ -251,10 +250,6 @@ export class WcResizer extends LitElement {
       inset: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
-    }
-
-    :host(:active) {
-      cursor: grabbing;
     }
   `;
 }
