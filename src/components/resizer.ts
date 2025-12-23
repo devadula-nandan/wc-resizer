@@ -20,6 +20,10 @@ import { customElement, property } from "lit/decorators.js";
 // (px, rem, etc.), so the container can adjust the other panels accordingly.
 // The panel containing `data-panel-fixed` is fixed-size; the other panels are fluid.
 
+// add buttons to collapse / expand panels
+// transitions
+// add snapping points
+
 
 /* ────────────────────────────────
  * Types

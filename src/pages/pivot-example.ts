@@ -26,7 +26,7 @@ class PivotExample extends LitElement {
       overflow: hidden;
     }
 
-    #ex-pivot {
+    #pivot-resizer {
       block-size: 4px;
       inline-size: 4px;
       background: #ffffff;
@@ -60,15 +60,21 @@ class PivotExample extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const horizontalResizer = this.renderRoot.querySelector("#ex-1") as HTMLElement & {
+      const horizontalResizer = this.renderRoot.querySelector(
+        "#horizontal-resizer"
+      ) as HTMLElement & {
         leftNode: HTMLElement;
         rightNode: HTMLElement;
       };
-      const verticalResizer = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
+      const verticalResizer = this.renderRoot.querySelector(
+        "#vertical-resizer"
+      ) as HTMLElement & {
         topNode: HTMLElement;
         bottomNode: HTMLElement;
       };
-      const resizerAxis = this.renderRoot.querySelector("#ex-pivot") as HTMLElement & {
+      const pivotResizer = this.renderRoot.querySelector(
+        "#pivot-resizer"
+      ) as HTMLElement & {
         leftNode: HTMLElement;
         rightNode: HTMLElement;
         topNode: HTMLElement;
@@ -81,25 +87,31 @@ class PivotExample extends LitElement {
 
       horizontalResizer.leftNode = el1;
       horizontalResizer.rightNode = el2;
+
       verticalResizer.topNode = el3;
       verticalResizer.bottomNode = el4;
 
-      resizerAxis.leftNode = el1;
-      resizerAxis.rightNode = el2;
-      resizerAxis.topNode = el3;
-      resizerAxis.bottomNode = el4;
-
+      pivotResizer.leftNode = el1;
+      pivotResizer.rightNode = el2;
+      pivotResizer.topNode = el3;
+      pivotResizer.bottomNode = el4;
     });
   }
   render() {
     return html`
       <div class="container c-1" style="display: inline-flex;">
         <div id="el-1">element 1</div>
-        <wc-resizer id="ex-1" bounded> </wc-resizer>
-        <div class="container" id="el-2" style="display: inline-flex; flex-direction: column;">
+        <wc-resizer id="horizontal-resizer" bounded> </wc-resizer>
+        <div
+          class="container"
+          id="el-2"
+          style="display: inline-flex; flex-direction: column;"
+        >
           <div id="el-3">element 3</div>
-         <div id="ex-1-2"> <wc-resizer id="ex-pivot" bounded> </wc-resizer>
-          <wc-resizer id="ex-2" orientation="vertical" bounded> </wc-resizer></div>
+          <div id="resizer-container">
+            <wc-resizer id="pivot-resizer" bounded> </wc-resizer>
+            <wc-resizer id="vertical-resizer" orientation="vertical" bounded> </wc-resizer>
+          </div>
           <div id="el-4">element 4</div>
         </div>
       </div>
