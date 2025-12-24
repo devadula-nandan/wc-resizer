@@ -1,277 +1,147 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 
-// TODO: should support 2 modes
-// 1. fluid (default) - elements resize according to their flex/grow/shrink properties. this is a responsive approach.
-// 2. fixed - elements have fixed sizes set via inline/block sizes. and are resized by adjusting those styles.
-
-// grid-template: "sidebar content content" 1fr "sidebar panel panel" minmax(0px, 300px) / minmax(0px, 266px) minmax(100px, 1fr) minmax(0px, 400px)
-
-// If one node is provided, it's an overlay panel or a panel that influences the layout.
-// It resizes the inline/block size of that node.
-//
-// If two nodes are provided, they are split panels. They are resized using grid-template adjustments.
-// In this case, the node containing the `data-panel-fixed` attribute must have a fixed grid-template size
-// (px, rem, etc.), so the container can adjust the other panel accordingly.
-// One panel is fixed-size; the other is fluid.
-//
-// If four nodes are provided, it's a pivot resizer. It resizes all four nodes accordingly.
-// The nodes containing the `data-panel-fixed` attribute must have a fixed grid-template size
-// (px, rem, etc.), so the container can adjust the other panels accordingly.
-// The panel containing `data-panel-fixed` is fixed-size; the other panels are fluid.
-
-// add buttons to collapse / expand panels
-// transitions
-// add snapping points
-
-
-/* ────────────────────────────────
- * Types
- * ──────────────────────────────── */
-
-type PointerPosition = {
-  x: number;
-  y: number;
-};
-
-type CurrentSizes = {
-  topHeight?: number;
-  bottomHeight?: number;
-  leftWidth?: number;
-  rightWidth?: number;
-};
-
-/* ────────────────────────────────
- * Component
- * ──────────────────────────────── */
+type PointerPos = { x: number; y: number };
 
 @customElement("wc-resizer")
 export class WcResizer extends LitElement {
-  @property({ type: Object }) topNode: HTMLElement | null = null;
-  @property({ type: Object }) bottomNode: HTMLElement | null = null;
-  @property({ type: Object }) leftNode: HTMLElement | null = null;
-  @property({ type: Object }) rightNode: HTMLElement | null = null;
+  @property({ type: Object }) containerNode?: HTMLElement;
+  @property({ type: Object }) leftNode?: HTMLElement;
+  @property({ type: Object }) rightNode?: HTMLElement;
+  @property({ type: Object }) topNode?: HTMLElement;
+  @property({ type: Object }) bottomNode?: HTMLElement;
 
-  @property({ reflect: true })
-  orientation: "vertical" | "horizontal" | null = "horizontal";
+  @property({ reflect: true }) orientation: "horizontal" | "vertical" =
+    "horizontal";
+  @property() mode: "fluid" | "fixed" = "fluid";
 
-  @property({ type: Boolean }) bounded = false;
-  @property({ type: Boolean }) fluid = false;
-
+  private ready = false;
   private dragging = false;
-  private activePointerId: number | null = null;
-  private initialPointerPos: PointerPosition | null = null;
-  private currentSizes: CurrentSizes | null = null;
-
-  constructor() {
-    super();
-
-    this.onPointerDown = this.onPointerDown.bind(this);
-    this.onPointerMove = this.onPointerMove.bind(this);
-    this.onPointerUp = this.onPointerUp.bind(this);
-    this.onDoubleClick = this.onDoubleClick.bind(this);
-
-    this.tabIndex = 0;
-    this.role = "separator";
-  }
+  private pointerId: number | null = null;
+  private start!: PointerPos;
+  private before = 0;
+  private after = 0;
+  private size = 0;
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener("pointerdown", this.onPointerDown);
-    this.addEventListener("pointermove", this.onPointerMove);
-    this.addEventListener("pointerup", this.onPointerUp);
-    this.addEventListener("pointercancel", this.onPointerUp);
-    this.addEventListener("dblclick", this.onDoubleClick);
+    this.addEventListener("pointerdown", this.onDown);
+    this.addEventListener("pointermove", this.onMove);
+    this.addEventListener("pointerup", this.onUp);
+    this.addEventListener("pointercancel", this.onUp);
   }
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.removeEventListener("pointerdown", this.onPointerDown);
-    this.removeEventListener("pointermove", this.onPointerMove);
-    this.removeEventListener("pointerup", this.onPointerUp);
-    this.removeEventListener("pointercancel", this.onPointerUp);
-    this.removeEventListener("dblclick", this.onDoubleClick);
+  updated() {
+    if (this.ready) return;
+
+    const ok =
+      this.containerNode &&
+      ((this.leftNode && this.rightNode) || (this.topNode && this.bottomNode));
+
+    if (!ok) return;
+
+    this.setupGrid();
+    this.ready = true;
   }
 
-  willUpdate(changed: Map<string, unknown>) {
-    if (
-      changed.has("topNode") ||
-      changed.has("bottomNode") ||
-      changed.has("leftNode") ||
-      changed.has("rightNode")
-    ) {
-      const vertical =
-        (this.topNode || this.bottomNode) &&
-        !this.leftNode &&
-        !this.rightNode;
+  setupGrid() {
+    const c = this.containerNode!;
+    c.style.display = "grid";
 
-      const horizontal =
-        (this.leftNode || this.rightNode) &&
-        !this.topNode &&
-        !this.bottomNode;
-
-      this.orientation = vertical
-        ? "vertical"
-        : horizontal
-        ? "horizontal"
-        : null;
+    if (this.orientation === "horizontal") {
+      c.style.gridTemplateColumns = "1fr auto 1fr";
+      c.replaceChildren(this.leftNode!, this, this.rightNode!);
+    } else {
+      c.style.gridTemplateRows = "1fr auto 1fr";
+      c.replaceChildren(this.topNode!, this, this.bottomNode!);
     }
   }
 
-  /* ────────────────────────────────
-   * Pointer handlers
-   * ──────────────────────────────── */
-
-  onPointerDown(e: PointerEvent) {
+  onDown = (e: PointerEvent) => {
     e.preventDefault();
+    const style = getComputedStyle(this.containerNode!);
+    const tracks =
+      this.orientation === "horizontal"
+        ? style.gridTemplateColumns.split(" ")
+        : style.gridTemplateRows.split(" ");
+
+    this.before = parseFloat(tracks[0]);
+    this.after = parseFloat(tracks[2]);
+
+    this.size =
+      this.orientation === "horizontal"
+        ? this.containerNode!.clientWidth
+        : this.containerNode!.clientHeight;
 
     this.dragging = true;
-    this.activePointerId = e.pointerId;
-    this.initialPointerPos = { x: e.clientX, y: e.clientY };
-
-    this.currentSizes = {
-      topHeight: this.topNode?.offsetHeight,
-      bottomHeight: this.bottomNode?.offsetHeight,
-      leftWidth: this.leftNode?.offsetWidth,
-      rightWidth: this.rightNode?.offsetWidth,
-    };
-
+    this.pointerId = e.pointerId;
+    this.start = { x: e.clientX, y: e.clientY };
     this.setPointerCapture(e.pointerId);
     document.body.style.userSelect = "none";
-  }
+  };
 
-  onPointerMove(e: PointerEvent) {
-    if (
-      !this.dragging ||
-      e.pointerId !== this.activePointerId ||
-      !this.initialPointerPos ||
-      !this.currentSizes
-    ) {
-      return;
-    }
+  onMove = (e: PointerEvent) => {
+    if (!this.dragging || e.pointerId !== this.pointerId) return;
 
-    const rawDx = e.clientX - this.initialPointerPos.x;
-    const rawDy = e.clientY - this.initialPointerPos.y;
+    const delta =
+      this.orientation === "horizontal"
+        ? e.clientX - this.start.x
+        : e.clientY - this.start.y;
 
-    let dx = rawDx;
-    let dy = rawDy;
+    const total = this.before + this.after;
+    const ratio = delta / this.size;
 
-    /* ───────── Horizontal clamp (left/right) ───────── */
-    if (
-      this.bounded &&
-      this.currentSizes.leftWidth !== undefined &&
-      this.currentSizes.rightWidth !== undefined
-    ) {
-      const minDx = -this.currentSizes.leftWidth;
-      const maxDx = this.currentSizes.rightWidth;
-      dx = Math.min(maxDx, Math.max(minDx, rawDx));
-    }
+    const a = Math.max(0.1, this.before + ratio * total);
+    const b = total - a;
 
-    /* ───────── Vertical clamp (top/bottom) ───────── */
-    if (
-      this.bounded &&
-      this.currentSizes.topHeight !== undefined &&
-      this.currentSizes.bottomHeight !== undefined
-    ) {
-      const minDy = -this.currentSizes.topHeight;
-      const maxDy = this.currentSizes.bottomHeight;
-      dy = Math.min(maxDy, Math.max(minDy, rawDy));
-    }
+    const t =
+      this.orientation === "horizontal"
+        ? ` ${a}fr auto ${b}fr`
+        : ` ${a}fr auto ${b}fr`;
 
-    /* ───────── Apply sizes ───────── */
-    if (this.topNode && this.currentSizes.topHeight !== undefined) {
-      this.topNode.style.blockSize =
-        `${this.currentSizes.topHeight + dy}px`;
-    }
+    if (this.orientation === "horizontal")
+      this.containerNode!.style.gridTemplateColumns = t;
+    else this.containerNode!.style.gridTemplateRows = t;
+  };
 
-    if (this.bottomNode && this.currentSizes.bottomHeight !== undefined) {
-      this.bottomNode.style.blockSize =
-        `${this.currentSizes.bottomHeight - dy}px`;
-    }
-
-    if (this.leftNode && this.currentSizes.leftWidth !== undefined) {
-      this.leftNode.style.inlineSize =
-        `${this.currentSizes.leftWidth + dx}px`;
-    }
-
-    if (this.rightNode && this.currentSizes.rightWidth !== undefined) {
-      this.rightNode.style.inlineSize =
-        `${this.currentSizes.rightWidth - dx}px`;
-    }
-  }
-
-  onPointerUp(e: PointerEvent) {
-    if (e.pointerId !== this.activePointerId) return;
-
+  onUp = (e: PointerEvent) => {
+    if (e.pointerId !== this.pointerId) return;
     this.dragging = false;
-    this.activePointerId = null;
-    this.initialPointerPos = null;
-    this.currentSizes = null;
-
+    this.pointerId = null;
     this.releasePointerCapture(e.pointerId);
     document.body.style.userSelect = "";
-  }
-
-  onDoubleClick() {
-    // Optional: reset logic
-    console.log("omdc");
-    
-  }
-
-  /* ────────────────────────────────
-   * Render
-   * ──────────────────────────────── */
+  };
 
   render() {
-    return html`<slot name="icon"></slot>`;
+    return html`
+      <slot name="pivot">
+        <div class="default-pivot"></div>
+      </slot>
+    `;
   }
 
   static styles = css`
     :host {
-      display: block;
-      min-block-size: 4px;
-      min-inline-size: 4px;
-      position: relative;
+      --resizer-thickness: 4px;
+      background: gray;
       touch-action: none;
       user-select: none;
+      position: relative;
     }
-
-    :host::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: #ffffff13;
-    }
-
-    :host([orientation="vertical"]) {
-      cursor: row-resize;
-    }
-
-    :host([orientation="vertical"])::before {
-      top: -4px;
-      block-size: calc(100% + 8px);
-      inline-size: 100%;
+    ::slotted([slot="pivot"]) {
+      transform: translateX(calc(var(--resizer-thickness, 4px) * -1));
     }
 
     :host([orientation="horizontal"]) {
-      cursor: col-resize;
+      cursor: ew-resize;
+      inline-size: var(--resizer-thickness, 4px);
     }
-
-    :host([orientation="horizontal"])::before {
-      left: -4px;
-      inline-size: calc(100% + 8px);
-      block-size: 100%;
-    }
-
-    ::slotted([slot="icon"]) {
-      position: absolute;
-      inset: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
+    :host([orientation="vertical"]) {
+      cursor: ns-resize;
+      block-size: var(--resizer-thickness, 4px);
     }
   `;
 }
-
 declare global {
   interface HTMLElementTagNameMap {
     "wc-resizer": WcResizer;

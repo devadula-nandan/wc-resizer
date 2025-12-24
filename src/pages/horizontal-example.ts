@@ -1,40 +1,35 @@
 import { LitElement, css, html } from "lit";
 import "../components/resizer";
+import "../components/pivot-resizer";
 
 class HorizontalExample extends LitElement {
   static styles = css`
-    .el {
+    .outer {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      width: 600px;
       height: 400px;
-      width: 298px;
-      background-color: #ffffff31;
-      overflow: auto;
     }
-
-    wc-resizer {
-      background: gray;
+    .panel {
+      background: #ffffff31;
     }
   `;
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const resizer = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-      };
-      const el1 = this.renderRoot.querySelector("#ex-2-el-1") as HTMLElement;
-      const el2 = this.renderRoot.querySelector("#ex-2-el-2") as HTMLElement;
-
-      resizer.leftNode = el1;
-      resizer.rightNode = el2;
+      const rx = this.renderRoot.querySelector("#rx") as any;
+      rx.leftNode = this.renderRoot.querySelector("#left");
+      rx.rightNode = this.renderRoot.querySelector("#right");
     });
   }
+
   render() {
     return html`
-      <div class="container" style="display: inline-flex;">
-        <div id="ex-2-el-1" class="el">element 1</div>
-        <wc-resizer id="ex-2" bounded> </wc-resizer>
-        <div id="ex-2-el-2" class="el">element 2</div>
+      <div class="outer">
+        <div id="left" class="panel">1</div>
+        <wc-resizer id="rx"></wc-resizer>
+        <div id="right" class="panel">2</div>
       </div>
     `;
   }

@@ -1,122 +1,62 @@
 import { LitElement, css, html } from "lit";
 import "../components/resizer";
+import "../components/pivot-resizer";
 
-class PivotExample extends LitElement {
+class AxisExample extends LitElement {
   static styles = css`
-    #el-1 {
+    .outer {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      width: 600px;
       height: 400px;
-      width: 298px;
-      background-color: #ffffff31;
-      overflow: hidden;
     }
-    #el-2 {
-      height: 400px;
-      width: 298px;
-      background-color: #ffffff31;
-      overflow: hidden;
+    .right {
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
     }
-    #el-3 {
-      height: 198px;
-      background-color: #ffffff31;
-      overflow: hidden;
-    }
-    #el-4 {
-      height: 198px;
-      background-color: #ffffff31;
-      overflow: hidden;
-    }
-
-    #pivot-resizer {
-      block-size: 4px;
-      inline-size: 4px;
-      background: #ffffff;
-      position: absolute;
-      z-index: 10;
-      margin-left: -4px;
-      cursor: move;
-
-      &::before {
-        content: "";
-        block-size: 12px;
-        inline-size: 12px;
-        background: transparent;
-        position: absolute;
-        inset: 50%;
-        /* background-color: #ffffff13; */
-        background-color: transparent;
-        transform: translate(-50%, -50%);
-      }
-    }
-
-    .c-1 {
-      position: relative;
-    }
-
-    wc-resizer {
-      background: gray;
+    .panel {
+      background: #ffffff31;
     }
   `;
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const horizontalResizer = this.renderRoot.querySelector(
-        "#horizontal-resizer"
-      ) as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-      };
-      const verticalResizer = this.renderRoot.querySelector(
-        "#vertical-resizer"
-      ) as HTMLElement & {
-        topNode: HTMLElement;
-        bottomNode: HTMLElement;
-      };
-      const pivotResizer = this.renderRoot.querySelector(
-        "#pivot-resizer"
-      ) as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-        topNode: HTMLElement;
-        bottomNode: HTMLElement;
-      };
-      const el1 = this.renderRoot.querySelector("#el-1") as HTMLElement;
-      const el2 = this.renderRoot.querySelector("#el-2") as HTMLElement;
-      const el3 = this.renderRoot.querySelector("#el-3") as HTMLElement;
-      const el4 = this.renderRoot.querySelector("#el-4") as HTMLElement;
+      const outer = this.renderRoot.querySelector(".outer")!;
+      const right = this.renderRoot.querySelector(".right")!;
 
-      horizontalResizer.leftNode = el1;
-      horizontalResizer.rightNode = el2;
+      const rx = this.renderRoot.querySelector("#rx") as any;
+      const ry = this.renderRoot.querySelector("#ry") as any;
 
-      verticalResizer.topNode = el3;
-      verticalResizer.bottomNode = el4;
+      rx.containerNode = outer;
+      rx.leftNode = this.renderRoot.querySelector("#el1")!;
+      rx.rightNode = this.renderRoot.querySelector("#right")!;
 
-      pivotResizer.leftNode = el1;
-      pivotResizer.rightNode = el2;
-      pivotResizer.topNode = el3;
-      pivotResizer.bottomNode = el4;
+      ry.containerNode = right;
+      ry.orientation = "vertical";
+      ry.topNode = this.renderRoot.querySelector("#el3")!;
+      ry.bottomNode = this.renderRoot.querySelector("#el4")!;
+
+      const pivot = this.renderRoot.querySelector("wc-pivot-resizer") as any;
+      pivot.xResizer = rx;
+      pivot.yResizer = ry;
     });
   }
+
   render() {
     return html`
-      <div class="container c-1" style="display: inline-flex;">
-        <div id="el-1">element 1</div>
-        <wc-resizer id="horizontal-resizer" bounded> </wc-resizer>
-        <div
-          class="container"
-          id="el-2"
-          style="display: inline-flex; flex-direction: column;"
-        >
-          <div id="el-3">element 3</div>
-          <div id="resizer-container">
-            <wc-resizer id="pivot-resizer" bounded> </wc-resizer>
-            <wc-resizer id="vertical-resizer" orientation="vertical" bounded> </wc-resizer>
-          </div>
-          <div id="el-4">element 4</div>
+      <div class="outer">
+        <div id="el1" class="panel">1</div>
+        <wc-resizer id="rx"></wc-resizer>
+        <div id="right" class="right">
+          <div id="el3" class="panel">3</div>
+          <wc-resizer id="ry" orientation="vertical"><wc-pivot-resizer></wc-pivot-resizer></wc-resizer>
+          <div id="el4" class="panel">4</div>
         </div>
+        
       </div>
     `;
   }
 }
 
-customElements.define("pivot-example", PivotExample);
+customElements.define("pivot-example", AxisExample);
