@@ -1,13 +1,20 @@
 import { LitElement, css, html } from "lit";
 import "../components/resizer";
 
-class VerticalExample extends LitElement {
+class HorizontalExample extends LitElement {
   static styles = css`
     .el {
-      height: 199px;
-      width: 600px;
       background-color: var(--cds-layer);
       overflow: auto;
+    }
+    .vertical-container {
+      --start-element-fraction: 1fr;
+      --end-element-fraction: 1fr;
+      display: grid;
+      grid-template-rows: var(--start-element-fraction) auto var(
+          --end-element-fraction
+        );
+      block-size: 100%;
     }
 
     wc-resizer {
@@ -18,12 +25,11 @@ class VerticalExample extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const resizer = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
-        topNode: HTMLElement;
-        bottomNode: HTMLElement;
-      };
-      const el1 = this.renderRoot.querySelector("#ex-2-el-1") as HTMLElement;
-      const el2 = this.renderRoot.querySelector("#ex-2-el-2") as HTMLElement;
+      const resizer = this.renderRoot.querySelector(
+        "#vertical-resizer"
+      ) as any;
+      const el1 = this.renderRoot.querySelectorAll(".el")[0] as HTMLElement;
+      const el2 = this.renderRoot.querySelectorAll(".el")[1] as HTMLElement;
 
       resizer.topNode = el1;
       resizer.bottomNode = el2;
@@ -31,9 +37,9 @@ class VerticalExample extends LitElement {
   }
   render() {
     return html`
-      <div class="container" style="display: inline-block">
-        <div id="ex-2-el-1" class="el">element 1</div>
-        <wc-resizer id="ex-2" bounded>
+      <div class="vertical-container">
+        <div class="el">element 1</div>
+        <wc-resizer  id="vertical-resizer">
           <svg
             slot="icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -43,10 +49,10 @@ class VerticalExample extends LitElement {
             <rect width="1" height="1" fill="currentColor" />
           </svg>
         </wc-resizer>
-        <div id="ex-2-el-2" class="el">element 2</div>
+        <div class="el">element 2</div>
       </div>
     `;
   }
 }
 
-customElements.define("vertical-example", VerticalExample);
+customElements.define("vertical-example", HorizontalExample);

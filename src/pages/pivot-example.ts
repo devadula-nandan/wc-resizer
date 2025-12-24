@@ -4,29 +4,31 @@ import "../components/resizer-pivot";
 
 class PivotExample extends LitElement {
   static styles = css`
-    #el-1 {
-      width: 299px;
+    .el {
       background-color: var(--cds-layer);
       overflow: hidden;
     }
-    #el-2 {
-      width: 299px;
-      background-color: var(--cds-layer);
-      overflow: hidden;
+    .horizontal-container {
+      --start-element-fraction: 1fr;
+      --end-element-fraction: 1fr;
+      display: grid;
+      grid-template-columns: var(--start-element-fraction) auto var(
+          --end-element-fraction
+        );
+      block-size: 100%;
     }
-    #el-3 {
-      height: 199px;
-      background-color: var(--cds-layer);
-      overflow: hidden;
-    }
-    #el-4 {
-      height: 199px;
-      background-color: var(--cds-layer);
-      overflow: hidden;
+    .vertical-container {
+      --start-element-fraction: 1fr;
+      --end-element-fraction: 1fr;
+      display: grid;
+      grid-template-rows: var(--start-element-fraction) auto var(
+          --end-element-fraction
+        );
+      block-size: 100%;
     }
 
     wc-resizer {
-      background: var(--cds-border-subtle);
+      background-color: var(--cds-border-subtle);
     }
     wc-resizer-pivot {
       background-color: var(--cds-text-primary);
@@ -45,13 +47,13 @@ class PivotExample extends LitElement {
       ) as any;
 
       const pivotResizer = this.renderRoot.querySelector(
-        "wc-resizer-pivot"
+        "#pivot-resizer"
       ) as any;
 
-      const el1 = this.renderRoot.querySelector("#el-1") as HTMLElement;
-      const el2 = this.renderRoot.querySelector("#el-2") as HTMLElement;
-      const el3 = this.renderRoot.querySelector("#el-3") as HTMLElement;
-      const el4 = this.renderRoot.querySelector("#el-4") as HTMLElement;
+      const el1 = this.renderRoot.querySelectorAll(".el")[0] as HTMLElement;
+      const el2 = this.renderRoot.querySelectorAll(".el")[1] as HTMLElement;
+      const el3 = this.renderRoot.querySelectorAll(".el")[2] as HTMLElement;
+      const el4 = this.renderRoot.querySelectorAll(".el")[3] as HTMLElement;
 
       horizontalResizer.leftNode = el1;
       horizontalResizer.rightNode = el2;
@@ -65,17 +67,14 @@ class PivotExample extends LitElement {
   }
   render() {
     return html`
-      <div class="container c-1" style="display: inline-flex;">
-        <div id="el-1">element 1</div>
-        <wc-resizer id="horizontal-resizer" bounded> </wc-resizer>
-        <div
-          class="container"
-          id="el-2"
-          style="display: inline-flex; flex-direction: column;"
-        >
-          <div id="el-3">element 3</div>
-          <wc-resizer id="vertical-resizer" orientation="vertical" bounded>
-            <wc-resizer-pivot slot="pivot-start"> </wc-resizer-pivot>
+      <div class="horizontal-container">
+        <div class="el">element 1</div>
+        <wc-resizer id="horizontal-resizer" > </wc-resizer>
+        <div class="vertical-container el">
+          <div class="el">element 3</div>
+          <wc-resizer id="vertical-resizer" orientation="vertical" >
+            <wc-resizer-pivot id="pivot-resizer" slot="pivot-start">
+            </wc-resizer-pivot>
             <svg
               slot="icon"
               xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +85,7 @@ class PivotExample extends LitElement {
             </svg>
           </wc-resizer>
 
-          <div id="el-4">element 4</div>
+          <div class="el">element 4</div>
         </div>
       </div>
     `;

@@ -28,16 +28,13 @@ import { customElement, property } from "lit/decorators.js";
  * Types
  * ──────────────────────────────── */
 
-type PointerPosition = {
-  x: number;
-  y: number;
-};
+type PointerPosition = { x: number; y: number };
+type Axis = "x" | "y";
 
-type CurrentSizes = {
-  topHeight?: number;
-  bottomHeight?: number;
-  leftWidth?: number;
-  rightWidth?: number;
+type ResizeContext = {
+  axis: Axis;
+  startSize: number;
+  endSize: number;
 };
 
 /* ────────────────────────────────
@@ -54,7 +51,7 @@ export class WcResizer extends LitElement {
   @property({ reflect: true })
   orientation: "vertical" | "horizontal" | null = "horizontal";
 
-  @property({ type: Boolean }) bounded = false;
+  @property({ type: Boolean }) bounded = true;
   @property({ type: Boolean }) fluid = false;
 
   private dragging = false;
@@ -62,7 +59,9 @@ export class WcResizer extends LitElement {
 
   private activePointerId: number | null = null;
   private initialPointerPos: PointerPosition | null = null;
-  private currentSizes: CurrentSizes | null = null;
+
+  private gridContainer: HTMLElement | null = null;
+  private ctx: ResizeContext | null = null;
 
   constructor() {
     super();
@@ -116,8 +115,28 @@ export class WcResizer extends LitElement {
   }
 
   /* ────────────────────────────────
-   * Pointer handlers
+   * Resize engine
    * ──────────────────────────────── */
+
+  private resolveContext(): ResizeContext | null {
+    if (this.leftNode && this.rightNode) {
+      return {
+        axis: "x",
+        startSize: this.leftNode.getBoundingClientRect().width,
+        endSize: this.rightNode.getBoundingClientRect().width,
+      };
+    }
+
+    if (this.topNode && this.bottomNode) {
+      return {
+        axis: "y",
+        startSize: this.topNode.getBoundingClientRect().height,
+        endSize: this.bottomNode.getBoundingClientRect().height,
+      };
+    }
+
+    return null;
+  }
 
   onPointerDown(e: PointerEvent) {
     e.preventDefault();
@@ -126,17 +145,17 @@ export class WcResizer extends LitElement {
     this.activePointerId = e.pointerId;
     this.initialPointerPos = { x: e.clientX, y: e.clientY };
 
-    this.currentSizes = {
-      topHeight: this.topNode?.offsetHeight,
-      bottomHeight: this.bottomNode?.offsetHeight,
-      leftWidth: this.leftNode?.offsetWidth,
-      rightWidth: this.rightNode?.offsetWidth,
-    };
+    this.gridContainer =
+      this.leftNode?.parentElement ??
+      this.topNode?.parentElement ??
+      this.rightNode?.parentElement ??
+      this.bottomNode?.parentElement ??
+      null;
 
-    if (!this.externalDrag) {
-      this.setPointerCapture(e.pointerId);
-    }
+    this.ctx = this.resolveContext();
+    if (!this.ctx || !this.gridContainer) return;
 
+    if (!this.externalDrag) this.setPointerCapture(e.pointerId);
     document.body.style.userSelect = "none";
   }
 
@@ -145,59 +164,34 @@ export class WcResizer extends LitElement {
       !this.dragging ||
       e.pointerId !== this.activePointerId ||
       !this.initialPointerPos ||
-      !this.currentSizes
-    ) {
-      return;
+      !this.gridContainer ||
+      !this.ctx
+    ) return;
+
+    const delta =
+      this.ctx.axis === "x"
+        ? e.clientX - this.initialPointerPos.x
+        : e.clientY - this.initialPointerPos.y;
+
+    let start = this.ctx.startSize + delta;
+    let end = this.ctx.endSize - delta;
+
+    if (this.bounded) {
+      start = Math.max(0, start);
+      end = Math.max(0, end);
     }
 
-    const rawDx = e.clientX - this.initialPointerPos.x;
-    const rawDy = e.clientY - this.initialPointerPos.y;
+    const total = start + end || 1;
 
-    let dx = rawDx;
-    let dy = rawDy;
+    this.gridContainer.style.setProperty(
+      "--start-element-fraction",
+      `${start / total}fr`
+    );
 
-    /* ───────── Horizontal clamp (left/right) ───────── */
-    if (
-      this.bounded &&
-      this.currentSizes.leftWidth !== undefined &&
-      this.currentSizes.rightWidth !== undefined
-    ) {
-      const minDx = -this.currentSizes.leftWidth;
-      const maxDx = this.currentSizes.rightWidth;
-      dx = Math.min(maxDx, Math.max(minDx, rawDx));
-    }
-
-    /* ───────── Vertical clamp (top/bottom) ───────── */
-    if (
-      this.bounded &&
-      this.currentSizes.topHeight !== undefined &&
-      this.currentSizes.bottomHeight !== undefined
-    ) {
-      const minDy = -this.currentSizes.topHeight;
-      const maxDy = this.currentSizes.bottomHeight;
-      dy = Math.min(maxDy, Math.max(minDy, rawDy));
-    }
-
-    /* ───────── Apply sizes ───────── */
-    if (this.topNode && this.currentSizes.topHeight !== undefined) {
-      this.topNode.style.blockSize = `${this.currentSizes.topHeight + dy}px`;
-    }
-
-    if (this.bottomNode && this.currentSizes.bottomHeight !== undefined) {
-      this.bottomNode.style.blockSize = `${
-        this.currentSizes.bottomHeight - dy
-      }px`;
-    }
-
-    if (this.leftNode && this.currentSizes.leftWidth !== undefined) {
-      this.leftNode.style.inlineSize = `${this.currentSizes.leftWidth + dx}px`;
-    }
-
-    if (this.rightNode && this.currentSizes.rightWidth !== undefined) {
-      this.rightNode.style.inlineSize = `${
-        this.currentSizes.rightWidth - dx
-      }px`;
-    }
+    this.gridContainer.style.setProperty(
+      "--end-element-fraction",
+      `${end / total}fr`
+    );
   }
 
   onPointerUp(e: PointerEvent) {
@@ -206,18 +200,15 @@ export class WcResizer extends LitElement {
     this.dragging = false;
     this.activePointerId = null;
     this.initialPointerPos = null;
-    this.currentSizes = null;
+    this.ctx = null;
 
-    if (!this.externalDrag) {
-      this.releasePointerCapture(e.pointerId);
-    }
-
+    if (!this.externalDrag) this.releasePointerCapture(e.pointerId);
     document.body.style.userSelect = "";
   }
 
   onDoubleClick() {
-    // Optional: reset logic
-    console.log("omdc");
+    this.gridContainer?.style.setProperty("--start-element-fraction", "1fr");
+    this.gridContainer?.style.setProperty("--end-element-fraction", "1fr");
   }
 
   public _startFromExternal(e: PointerEvent) {
@@ -239,11 +230,13 @@ export class WcResizer extends LitElement {
    * ──────────────────────────────── */
 
   render() {
-    return html` <slot name="pivot-start"></slot>
+    return html`
+      <slot name="pivot-start"></slot>
       <div class="icon-container">
-        <slot name="icon"> </slot>
+        <slot name="icon"></slot>
       </div>
-      <slot name="pivot-end"></slot>`;
+      <slot name="pivot-end"></slot>
+    `;
   }
 
   static styles = css`

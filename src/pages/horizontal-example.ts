@@ -4,10 +4,17 @@ import "../components/resizer";
 class HorizontalExample extends LitElement {
   static styles = css`
     .el {
-      height: 400px;
-      width: 299px;
       background-color: var(--cds-layer);
       overflow: auto;
+    }
+    .horizontal-container {
+      --start-element-fraction: 1fr;
+      --end-element-fraction: 1fr;
+      display: grid;
+      grid-template-columns: var(--start-element-fraction) auto var(
+          --end-element-fraction
+        );
+      block-size: 100%;
     }
 
     wc-resizer {
@@ -18,12 +25,11 @@ class HorizontalExample extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const resizer = this.renderRoot.querySelector("#ex-2") as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-      };
-      const el1 = this.renderRoot.querySelector("#ex-2-el-1") as HTMLElement;
-      const el2 = this.renderRoot.querySelector("#ex-2-el-2") as HTMLElement;
+      const resizer = this.renderRoot.querySelector(
+        "#horizontal-resizer"
+      ) as any;
+      const el1 = this.renderRoot.querySelectorAll(".el")[0] as HTMLElement;
+      const el2 = this.renderRoot.querySelectorAll(".el")[1] as HTMLElement;
 
       resizer.leftNode = el1;
       resizer.rightNode = el2;
@@ -31,9 +37,9 @@ class HorizontalExample extends LitElement {
   }
   render() {
     return html`
-      <div class="container" style="display: inline-flex;">
-        <div id="ex-2-el-1" class="el">element 1</div>
-        <wc-resizer id="ex-2" bounded>
+      <div class="horizontal-container">
+        <div class="el">element 1</div>
+        <wc-resizer  id="horizontal-resizer">
           <svg
             slot="icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +49,7 @@ class HorizontalExample extends LitElement {
             <rect width="1" height="1" fill="currentColor" />
           </svg>
         </wc-resizer>
-        <div id="ex-2-el-2" class="el">element 2</div>
+        <div class="el">element 2</div>
       </div>
     `;
   }
