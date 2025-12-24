@@ -55,12 +55,12 @@ export class PivotResizer extends LitElement {
       cursor: move;
     }
     :host([slot="pivot-start"]) {
-      margin-inline-start: calc(var(--resizer-thickness, 4px) * -1);
+      margin-inline-start: calc( max(1px, var(--resizer-thickness, 1px)) * -1);
     }
     :host([slot="pivot-end"]) {
       inset-inline-end: 0;
-      margin-block-start: calc(var(--resizer-thickness, 4px) * -1);
-      margin-inline-end: calc(var(--resizer-thickness, 4px) * -1);
+      margin-block-start: calc( max(1px, var(--resizer-thickness, 1px)) * -1);
+      margin-inline-end: calc( max(1px, var(--resizer-thickness, 1px)) * -1);
     }
   `;
 }

@@ -273,7 +273,7 @@ onPointerMove(e: PointerEvent) {
 
   static styles = css`
     :host {
-      --resizer-thickness: 2px;
+      /* --resizer-thickness: 2px; */
       display: block;
       min-block-size: max(1px, var(--resizer-thickness, 1px));
       min-inline-size: max(1px, var(--resizer-thickness, 1px));

@@ -4,6 +4,7 @@ import "./components/resizer";
 import "./pages/vertical-example";
 import "./pages/horizontal-example";
 import "./pages/pivot-example";
+import "./pages/control-panel";
 
 @customElement("app-root")
 export class AppRoot extends LitElement {
@@ -138,12 +139,10 @@ export class AppRoot extends LitElement {
           </div>
         </div>
         <aside class="controls right">
-          <cds-heading>Resizer</cds-heading>
+          <control-panel></control-panel>
         </aside>
         </div>
       </main>
-      
-
       </aside>
     `;
   }
