@@ -35,6 +35,7 @@ type ResizeContext = {
   axis: Axis;
   startSize: number;
   endSize: number;
+  fixed: "start" | "end" | "both" | null;
 };
 
 /* ────────────────────────────────
@@ -119,20 +120,39 @@ export class WcResizer extends LitElement {
    * ──────────────────────────────── */
 
   private resolveContext(): ResizeContext | null {
+    const resolveFixed = (startNode: Element, endNode: Element) => {
+      const startFixed = startNode.hasAttribute("data-fixed");
+      const endFixed = endNode.hasAttribute("data-fixed");
+
+      if (startFixed && endFixed) return "both";
+      if (startFixed) return "start";
+      if (endFixed) return "end";
+      return null;
+    };
+
+    const resolveAxis = (
+      startNode: Element,
+      endNode: Element,
+      axis: "x" | "y"
+    ): ResizeContext => ({
+      axis,
+      startSize:
+        axis === "x"
+          ? startNode.getBoundingClientRect().width
+          : startNode.getBoundingClientRect().height,
+      endSize:
+        axis === "x"
+          ? endNode.getBoundingClientRect().width
+          : endNode.getBoundingClientRect().height,
+      fixed: resolveFixed(startNode, endNode),
+    });
+
     if (this.leftNode && this.rightNode) {
-      return {
-        axis: "x",
-        startSize: this.leftNode.getBoundingClientRect().width,
-        endSize: this.rightNode.getBoundingClientRect().width,
-      };
+      return resolveAxis(this.leftNode, this.rightNode, "x");
     }
 
     if (this.topNode && this.bottomNode) {
-      return {
-        axis: "y",
-        startSize: this.topNode.getBoundingClientRect().height,
-        endSize: this.bottomNode.getBoundingClientRect().height,
-      };
+      return resolveAxis(this.topNode, this.bottomNode, "y");
     }
 
     return null;
@@ -159,40 +179,51 @@ export class WcResizer extends LitElement {
     document.body.style.userSelect = "none";
   }
 
-  onPointerMove(e: PointerEvent) {
-    if (
-      !this.dragging ||
-      e.pointerId !== this.activePointerId ||
-      !this.initialPointerPos ||
-      !this.gridContainer ||
-      !this.ctx
+onPointerMove(e: PointerEvent) {
+  if (
+    !this.dragging ||
+    e.pointerId !== this.activePointerId ||
+    !this.initialPointerPos ||
+    !this.gridContainer ||
+    !this.ctx
     ) return;
 
-    const delta =
-      this.ctx.axis === "x"
-        ? e.clientX - this.initialPointerPos.x
-        : e.clientY - this.initialPointerPos.y;
+  const delta =
+    this.ctx.axis === "x"
+      ? e.clientX - this.initialPointerPos.x
+      : e.clientY - this.initialPointerPos.y;
 
-    let start = this.ctx.startSize + delta;
-    let end = this.ctx.endSize - delta;
+  let start = this.ctx.startSize + delta;
+  let end = this.ctx.endSize - delta;
 
-    if (this.bounded) {
-      start = Math.max(0, start);
-      end = Math.max(0, end);
-    }
-
-    const total = start + end || 1;
-
-    this.gridContainer.style.setProperty(
-      "--start-element-fraction",
-      `${start / total}fr`
-    );
-
-    this.gridContainer.style.setProperty(
-      "--end-element-fraction",
-      `${end / total}fr`
-    );
+  if (this.bounded) {
+    start = Math.max(0, start);
+    end = Math.max(0, end);
   }
+
+  const total = start + end || 1;
+
+  if (this.ctx.fixed === "start") {
+    // start element is fixed in px, end element is fluid
+    this.gridContainer.style.setProperty("--start-element-size", `${start}px`);
+    this.gridContainer.style.setProperty("--end-element-size", `1fr`);
+    return;
+  } else if (this.ctx.fixed === "end") {
+    // end element is fixed in px, start element is fluid
+    this.gridContainer.style.setProperty("--start-element-size", `1fr`);
+    this.gridContainer.style.setProperty("--end-element-size", `${end}px`);
+    return;
+  } else if (this.ctx.fixed === "both") {
+    // both are fixed in px
+    this.gridContainer.style.setProperty("--start-element-size", `${start}px`);
+    this.gridContainer.style.setProperty("--end-element-size", `${end}px`);
+    return;
+  }
+
+  // fluid case (default)
+  this.gridContainer.style.setProperty("--start-element-size", `${start / total}fr`);
+  this.gridContainer.style.setProperty("--end-element-size", `${end / total}fr`);
+}
 
   onPointerUp(e: PointerEvent) {
     if (e.pointerId !== this.activePointerId) return;
@@ -207,10 +238,11 @@ export class WcResizer extends LitElement {
   }
 
   onDoubleClick() {
-    this.gridContainer?.style.setProperty("--start-element-fraction", "1fr");
-    this.gridContainer?.style.setProperty("--end-element-fraction", "1fr");
+    this.gridContainer?.style.setProperty("--start-element-size", "1fr");
+    this.gridContainer?.style.setProperty("--end-element-size", "1fr");
   }
 
+  // forward pointer events for external control (e.g., from pivot resizer)
   public _startFromExternal(e: PointerEvent) {
     this.externalDrag = true;
     this.onPointerDown(e);

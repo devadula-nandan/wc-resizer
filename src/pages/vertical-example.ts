@@ -8,26 +8,26 @@ class HorizontalExample extends LitElement {
       overflow: auto;
     }
     .vertical-container {
-      --start-element-fraction: 1fr;
-      --end-element-fraction: 1fr;
+      --start-element-size: 1fr;
+      --end-element-size: 1fr;
       display: grid;
-      grid-template-rows: var(--start-element-fraction) auto var(
-          --end-element-fraction
-        );
+      grid-template-rows: var(--start-element-size) auto var(--end-element-size);
       block-size: 100%;
     }
 
     wc-resizer {
       background: var(--cds-border-subtle);
     }
+    cds-toggle {
+      padding: 0.6rem;
+      display: block;
+    }
   `;
 
   connectedCallback(): void {
     super.connectedCallback();
     this.updateComplete.then(() => {
-      const resizer = this.renderRoot.querySelector(
-        "#vertical-resizer"
-      ) as any;
+      const resizer = this.renderRoot.querySelector("#vertical-resizer") as any;
       const el1 = this.renderRoot.querySelectorAll(".el")[0] as HTMLElement;
       const el2 = this.renderRoot.querySelectorAll(".el")[1] as HTMLElement;
 
@@ -38,8 +38,19 @@ class HorizontalExample extends LitElement {
   render() {
     return html`
       <div class="vertical-container">
-        <div class="el">element 1</div>
-        <wc-resizer  id="vertical-resizer">
+        <div class="el">
+          <cds-toggle
+            label-b="Fluid"
+            label-a="Fixed"
+            size="sm"
+            @cds-toggle-changed=${(e: any) =>
+              e.target.parentElement.toggleAttribute(
+                "data-fixed",
+                e.target.toggled
+              )}
+          ></cds-toggle>
+        </div>
+        <wc-resizer id="vertical-resizer">
           <svg
             slot="icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +60,18 @@ class HorizontalExample extends LitElement {
             <rect width="1" height="1" fill="currentColor" />
           </svg>
         </wc-resizer>
-        <div class="el">element 2</div>
+        <div class="el">
+          <cds-toggle
+            label-b="Fluid"
+            label-a="Fixed"
+            size="sm"
+            @cds-toggle-changed=${(e: any) =>
+              e.target.parentElement.toggleAttribute(
+                "data-fixed",
+                e.target.toggled
+              )}
+          ></cds-toggle>
+        </div>
       </div>
     `;
   }

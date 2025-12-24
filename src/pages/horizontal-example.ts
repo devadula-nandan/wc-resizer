@@ -8,17 +8,21 @@ class HorizontalExample extends LitElement {
       overflow: auto;
     }
     .horizontal-container {
-      --start-element-fraction: 1fr;
-      --end-element-fraction: 1fr;
+      --start-element-size: 1fr;
+      --end-element-size: 1fr;
       display: grid;
-      grid-template-columns: var(--start-element-fraction) auto var(
-          --end-element-fraction
+      grid-template-columns: var(--start-element-size) auto var(
+          --end-element-size
         );
       block-size: 100%;
     }
 
     wc-resizer {
       background: var(--cds-border-subtle);
+    }
+    cds-toggle {
+      padding: 0.6rem;
+      display: block;
     }
   `;
 
@@ -38,8 +42,19 @@ class HorizontalExample extends LitElement {
   render() {
     return html`
       <div class="horizontal-container">
-        <div class="el">element 1</div>
-        <wc-resizer  id="horizontal-resizer">
+        <div class="el">
+          <cds-toggle
+            label-b="Fluid"
+            label-a="Fixed"
+            size="sm"
+            @cds-toggle-changed=${(e: any) =>
+              e.target.parentElement.toggleAttribute(
+                "data-fixed",
+                e.target.toggled
+              )}
+          ></cds-toggle>
+        </div>
+        <wc-resizer id="horizontal-resizer">
           <svg
             slot="icon"
             xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +64,18 @@ class HorizontalExample extends LitElement {
             <rect width="1" height="1" fill="currentColor" />
           </svg>
         </wc-resizer>
-        <div class="el">element 2</div>
+        <div class="el">
+          <cds-toggle
+            label-b="Fluid"
+            label-a="Fixed"
+            size="sm"
+            @cds-toggle-changed=${(e: any) =>
+              e.target.parentElement.toggleAttribute(
+                "data-fixed",
+                e.target.toggled
+              )}
+          ></cds-toggle>
+        </div>
       </div>
     `;
   }
