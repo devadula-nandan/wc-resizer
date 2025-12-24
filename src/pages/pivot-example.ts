@@ -1,59 +1,35 @@
 import { LitElement, css, html } from "lit";
 import "../components/resizer";
+import "../components/resizer-pivot";
 
 class PivotExample extends LitElement {
   static styles = css`
     #el-1 {
-      height: 400px;
-      width: 298px;
-      background-color: #ffffff31;
+      width: 299px;
+      background-color: var(--cds-layer);
       overflow: hidden;
     }
     #el-2 {
-      height: 400px;
-      width: 298px;
-      background-color: #ffffff31;
+      width: 299px;
+      background-color: var(--cds-layer);
       overflow: hidden;
     }
     #el-3 {
-      height: 198px;
-      background-color: #ffffff31;
+      height: 199px;
+      background-color: var(--cds-layer);
       overflow: hidden;
     }
     #el-4 {
-      height: 198px;
-      background-color: #ffffff31;
+      height: 199px;
+      background-color: var(--cds-layer);
       overflow: hidden;
     }
 
-    #pivot-resizer {
-      block-size: 4px;
-      inline-size: 4px;
-      background: #ffffff;
-      position: absolute;
-      z-index: 10;
-      margin-left: -4px;
-      cursor: move;
-
-      &::before {
-        content: "";
-        block-size: 12px;
-        inline-size: 12px;
-        background: transparent;
-        position: absolute;
-        inset: 50%;
-        /* background-color: #ffffff13; */
-        background-color: transparent;
-        transform: translate(-50%, -50%);
-      }
-    }
-
-    .c-1 {
-      position: relative;
-    }
-
     wc-resizer {
-      background: gray;
+      background: var(--cds-border-subtle);
+    }
+    wc-resizer-pivot {
+      background-color: var(--cds-text-primary);
     }
   `;
 
@@ -62,24 +38,16 @@ class PivotExample extends LitElement {
     this.updateComplete.then(() => {
       const horizontalResizer = this.renderRoot.querySelector(
         "#horizontal-resizer"
-      ) as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-      };
+      ) as any;
+
       const verticalResizer = this.renderRoot.querySelector(
         "#vertical-resizer"
-      ) as HTMLElement & {
-        topNode: HTMLElement;
-        bottomNode: HTMLElement;
-      };
+      ) as any;
+
       const pivotResizer = this.renderRoot.querySelector(
-        "#pivot-resizer"
-      ) as HTMLElement & {
-        leftNode: HTMLElement;
-        rightNode: HTMLElement;
-        topNode: HTMLElement;
-        bottomNode: HTMLElement;
-      };
+        "wc-resizer-pivot"
+      ) as any;
+
       const el1 = this.renderRoot.querySelector("#el-1") as HTMLElement;
       const el2 = this.renderRoot.querySelector("#el-2") as HTMLElement;
       const el3 = this.renderRoot.querySelector("#el-3") as HTMLElement;
@@ -91,10 +59,8 @@ class PivotExample extends LitElement {
       verticalResizer.topNode = el3;
       verticalResizer.bottomNode = el4;
 
-      pivotResizer.leftNode = el1;
-      pivotResizer.rightNode = el2;
-      pivotResizer.topNode = el3;
-      pivotResizer.bottomNode = el4;
+      pivotResizer.horizontalResizer = horizontalResizer;
+      pivotResizer.verticalResizer = verticalResizer;
     });
   }
   render() {
@@ -108,10 +74,18 @@ class PivotExample extends LitElement {
           style="display: inline-flex; flex-direction: column;"
         >
           <div id="el-3">element 3</div>
-          <div id="resizer-container">
-            <wc-resizer id="pivot-resizer" bounded> </wc-resizer>
-            <wc-resizer id="vertical-resizer" orientation="vertical" bounded> </wc-resizer>
-          </div>
+          <wc-resizer id="vertical-resizer" orientation="vertical" bounded>
+            <wc-resizer-pivot slot="pivot-start"> </wc-resizer-pivot>
+            <svg
+              slot="icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 1 1"
+              style="width: max(1px, var(--resizer-thickness, 1px));height: max(1px, var(--resizer-thickness, 1px));"
+            >
+              <rect width="1" height="1" fill="currentColor" />
+            </svg>
+          </wc-resizer>
+
           <div id="el-4">element 4</div>
         </div>
       </div>

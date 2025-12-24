@@ -3,21 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <script>
+      (function () {
+        const savedTheme =
+          localStorage.getItem("theme") ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "g100"
+            : "white");
+        document.documentElement.className = `cds-theme-zone-${savedTheme}`;
+      })();
+    </script>
+
+    <link
+      rel="stylesheet"
+      href="https://1.www.s81c.com/common/carbon/web-components/tag/latest/themes.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://1.www.s81c.com/common/carbon/plex/sans.css"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + Lit + TS</title>
     <script type="module" src="/src/main.ts"></script>
     <style>
       :root {
-        font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-        line-height: 1.5;
-        font-weight: 400;
-
-        color-scheme: light dark;
-        color: rgba(255, 255, 255, 0.87);
-        background-color: #000000;
-
+        font-family: "IBM Plex Sans", sans-serif;
         font-synthesis: none;
         text-rendering: optimizeLegibility;
+        background-color: var(--cds-background);
+        color: var(--cds-text-primary);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -25,14 +39,15 @@
       body {
         margin: 0;
       }
-
-      @media (prefers-color-scheme: light) {
-        :root {
-          color: #000000;
-          background-color: #ffffff;
-        }
-      }
     </style>
+        <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/dropdown.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/button.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/tag.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/tile.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/tabs.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/heading.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/toggle.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/version/v2.40.1/text-input.min.js"></script>
   </head>
   <body>
     <app-root></app-root>

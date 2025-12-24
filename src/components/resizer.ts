@@ -24,7 +24,6 @@ import { customElement, property } from "lit/decorators.js";
 // transitions
 // add snapping points
 
-
 /* ────────────────────────────────
  * Types
  * ──────────────────────────────── */
@@ -59,6 +58,8 @@ export class WcResizer extends LitElement {
   @property({ type: Boolean }) fluid = false;
 
   private dragging = false;
+  private externalDrag = false;
+
   private activePointerId: number | null = null;
   private initialPointerPos: PointerPosition | null = null;
   private currentSizes: CurrentSizes | null = null;
@@ -101,14 +102,10 @@ export class WcResizer extends LitElement {
       changed.has("rightNode")
     ) {
       const vertical =
-        (this.topNode || this.bottomNode) &&
-        !this.leftNode &&
-        !this.rightNode;
+        (this.topNode || this.bottomNode) && !this.leftNode && !this.rightNode;
 
       const horizontal =
-        (this.leftNode || this.rightNode) &&
-        !this.topNode &&
-        !this.bottomNode;
+        (this.leftNode || this.rightNode) && !this.topNode && !this.bottomNode;
 
       this.orientation = vertical
         ? "vertical"
@@ -136,7 +133,10 @@ export class WcResizer extends LitElement {
       rightWidth: this.rightNode?.offsetWidth,
     };
 
-    this.setPointerCapture(e.pointerId);
+    if (!this.externalDrag) {
+      this.setPointerCapture(e.pointerId);
+    }
+
     document.body.style.userSelect = "none";
   }
 
@@ -180,23 +180,23 @@ export class WcResizer extends LitElement {
 
     /* ───────── Apply sizes ───────── */
     if (this.topNode && this.currentSizes.topHeight !== undefined) {
-      this.topNode.style.blockSize =
-        `${this.currentSizes.topHeight + dy}px`;
+      this.topNode.style.blockSize = `${this.currentSizes.topHeight + dy}px`;
     }
 
     if (this.bottomNode && this.currentSizes.bottomHeight !== undefined) {
-      this.bottomNode.style.blockSize =
-        `${this.currentSizes.bottomHeight - dy}px`;
+      this.bottomNode.style.blockSize = `${
+        this.currentSizes.bottomHeight - dy
+      }px`;
     }
 
     if (this.leftNode && this.currentSizes.leftWidth !== undefined) {
-      this.leftNode.style.inlineSize =
-        `${this.currentSizes.leftWidth + dx}px`;
+      this.leftNode.style.inlineSize = `${this.currentSizes.leftWidth + dx}px`;
     }
 
     if (this.rightNode && this.currentSizes.rightWidth !== undefined) {
-      this.rightNode.style.inlineSize =
-        `${this.currentSizes.rightWidth - dx}px`;
+      this.rightNode.style.inlineSize = `${
+        this.currentSizes.rightWidth - dx
+      }px`;
     }
   }
 
@@ -208,14 +208,30 @@ export class WcResizer extends LitElement {
     this.initialPointerPos = null;
     this.currentSizes = null;
 
-    this.releasePointerCapture(e.pointerId);
+    if (!this.externalDrag) {
+      this.releasePointerCapture(e.pointerId);
+    }
+
     document.body.style.userSelect = "";
   }
 
   onDoubleClick() {
     // Optional: reset logic
     console.log("omdc");
-    
+  }
+
+  public _startFromExternal(e: PointerEvent) {
+    this.externalDrag = true;
+    this.onPointerDown(e);
+  }
+
+  public _moveFromExternal(e: PointerEvent) {
+    this.onPointerMove(e);
+  }
+
+  public _endFromExternal(e: PointerEvent) {
+    this.externalDrag = false;
+    this.onPointerUp(e);
   }
 
   /* ────────────────────────────────
@@ -223,51 +239,37 @@ export class WcResizer extends LitElement {
    * ──────────────────────────────── */
 
   render() {
-    return html`<slot name="icon"></slot>`;
+    return html` <slot name="pivot-start"></slot>
+      <div class="icon-container">
+        <slot name="icon"> </slot>
+      </div>
+      <slot name="pivot-end"></slot>`;
   }
 
   static styles = css`
     :host {
+      --resizer-thickness: 2px;
       display: block;
-      min-block-size: 4px;
-      min-inline-size: 4px;
-      position: relative;
+      min-block-size: max(1px, var(--resizer-thickness, 1px));
+      min-inline-size: max(1px, var(--resizer-thickness, 1px));
       touch-action: none;
       user-select: none;
     }
 
-    :host::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: #ffffff13;
+    .icon-container {
+      inline-size: 100%;
+      block-size: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     :host([orientation="vertical"]) {
       cursor: row-resize;
     }
 
-    :host([orientation="vertical"])::before {
-      top: -4px;
-      block-size: calc(100% + 8px);
-      inline-size: 100%;
-    }
-
     :host([orientation="horizontal"]) {
       cursor: col-resize;
-    }
-
-    :host([orientation="horizontal"])::before {
-      left: -4px;
-      inline-size: calc(100% + 8px);
-      block-size: 100%;
-    }
-
-    ::slotted([slot="icon"]) {
-      position: absolute;
-      inset: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
     }
   `;
 }

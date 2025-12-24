@@ -10,7 +10,6 @@
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
-    "@lit-labs/router": "^0.1.4",
     "lit": "^3.3.1"
   },
   "devDependencies": {
