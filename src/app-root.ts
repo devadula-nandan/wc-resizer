@@ -1,8 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
-import "./components/resizer";
-import "./pages/vertical-example";
-import "./pages/horizontal-example";
+
 import "./pages/pivot-example";
 import "./pages/control-panel";
 

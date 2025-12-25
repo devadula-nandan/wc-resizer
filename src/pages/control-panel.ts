@@ -3,6 +3,8 @@ import { customElement } from "lit/decorators.js";
 
 @customElement("control-panel")
 export class ControlPanel extends LitElement {
+  resizerThickness = 4;
+
   static styles = css`
     :host {
       display: block;
@@ -11,40 +13,49 @@ export class ControlPanel extends LitElement {
     }
   `;
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
-    document.querySelector("app-root")?.style.setProperty(
-      "--resizer-thickness",
-      `4px`
-    );
+
+    this.resizerThickness =
+      Number(localStorage.getItem("resizer-thickness")) || 4;
+
+    this.updateApp();
+  }
+
+  updateApp() {
+    document
+      .querySelector("app-root")
+      ?.style.setProperty("--resizer-thickness", `${this.resizerThickness}px`);
+
+    localStorage.setItem("resizer-thickness", String(this.resizerThickness));
   }
 
   render() {
     return html`
       <cds-layer level="1">
-        <cds-form id="test-form">
-          <cds-stack gap="7">
-            <cds-heading>Resizer Controls</cds-heading>
-            <cds-number-input
-              label="--resizer-thickness"
-              min="0"
-              max="16"
-              value="4"
-              step="1"
-              invalid-text="Are you sure about that?"
-              @cds-number-input=${(e: any) => {
-               document.querySelector("app-root")?.style.setProperty(
-                  "--resizer-thickness",
-                  `${e.target.value}px`
-                );
-                
-              }}
-              icon-description="Add/decrement number"
-            ></cds-number-input>
+        <cds-stack gap="7">
+          <cds-heading>Resizer Controls</cds-heading>
 
-            <!-- <cds-button type="submit"> Submit </cds-button> -->
-          </cds-stack>
-        </cds-form>
+          <cds-number-input
+            label="--resizer-thickness"
+            min="0"
+            max="16"
+            step="1"
+            .value=${this.resizerThickness}
+            @cds-number-input=${(e: any) => {
+              this.resizerThickness = Number(e.target.value);
+              this.updateApp();
+            }}
+          ></cds-number-input>
+
+          <cds-button kind="danger" @click=${() => {
+            this.resizerThickness = 4;
+            this.updateApp();
+            this.requestUpdate();
+          }}>
+            Reset
+          </cds-button>
+        </cds-stack>
       </cds-layer>
     `;
   }
