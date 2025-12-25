@@ -17,14 +17,10 @@ class PivotExample extends LitElement {
             <resize-panel slot="top">Panel 2</resize-panel>
             <resize-handle slot="handle-vertical">
               <resize-handle-pivot></resize-handle-pivot>
-              <svg
+              <div
                 slot="icon"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 1 1"
-                style="width: max(1px, var(--resizer-thickness, 1px));height: max(1px, var(--resizer-thickness, 1px));"
-              >
-                <rect width="1" height="1" fill="currentColor"></rect>
-              </svg>
+                style="height: max(1px, var(--resizer-thickness, 1px));width: clamp(1px, var(--resizer-thickness, 1px), 100%); background: currentColor;"
+              ></div>
             </resize-handle>
             <resize-panel slot="bottom">Panel 3</resize-panel>
           </resize-grid>

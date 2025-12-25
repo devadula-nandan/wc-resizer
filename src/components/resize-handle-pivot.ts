@@ -12,13 +12,13 @@ export class ResizeHandlePivot extends LitElement {
     :host {
       display: block;
       background: currentColor;
-      block-size: var(--resizer-thickness);
-      inline-size: var(--resizer-thickness);
+      block-size:max(1px, var(--resizer-thickness));
+      inline-size:max(1px, var(--resizer-thickness));
       cursor: all-scroll;
       position: absolute;
     }
     :host([position="start"]) {
-      margin-inline-start: calc(-1 * var(--resizer-thickness));
+      margin-inline-start: calc(-1 * max(1px, var(--resizer-thickness)));
     }
   `;
 

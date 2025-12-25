@@ -80,8 +80,6 @@ export class AppRoot extends LitElement {
             this.updateUrl(tabValue);
           }}
         >
-          <cds-tab id="tab-home" target="panel-home" value="home">Home</cds-tab>
-
           <cds-tab
             id="tab-vertical-example"
             target="panel-vertical-example"
@@ -104,14 +102,6 @@ export class AppRoot extends LitElement {
         <div class="custom-flex">
         <div class="left">
           <div class="resize">
-            <div
-              id="panel-home"
-              role="tabpanel"
-              aria-labelledby="tab-home"
-              hidden=""
-            >
-              Tab Panel 1
-            </div>
             <div
               id="panel-vertical-example"
               role="tabpanel"

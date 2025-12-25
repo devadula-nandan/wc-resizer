@@ -45,7 +45,7 @@ export class ControlPanel extends LitElement {
     return html`
       <cds-layer level="1">
         <cds-stack gap="7">
-          <cds-heading>Controls</cds-heading>
+          <cds-heading>Resizer</cds-heading>
 
           <!-- Resizer -->
           <cds-number-input
@@ -53,6 +53,7 @@ export class ControlPanel extends LitElement {
             min="0"
             max="16"
             step="1"
+            invalid-text="Are you sure about that?"
             .value=${this.resizerThickness}
             @cds-number-input=${(e: any) => {
               this.resizerThickness = Number(e.target.value);

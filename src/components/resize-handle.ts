@@ -38,6 +38,23 @@ export class ResizeHandle extends LitElement {
     return undefined;
   }
 
+  // private emitDelta(delta: number) {
+  //   requestAnimationFrame(() => {
+  //     this.dispatchEvent(
+  //       new CustomEvent("resize-handle:drag", {
+  //         detail: {
+  //           delta,
+  //           startSize: this.startSize,
+  //           endSize: this.endSize,
+  //           axis: this.axis,
+  //         },
+  //         bubbles: true,
+  //         composed: true,
+  //       })
+  //     );
+  //   });
+  // }
+
   startDrag = (e: PointerEvent) => {
     e.preventDefault();
 
@@ -48,6 +65,14 @@ export class ResizeHandle extends LitElement {
     this.endSize = this.axis === "x" ? rectEnd.width : rectEnd.height;
 
     const startPos = this.axis === "x" ? e.clientX : e.clientY;
+
+    // this.dispatchEvent(
+    //   new CustomEvent("resize-handle:start", {
+    //     detail: { axis: this.axis },
+    //     bubbles: true,
+    //     composed: true,
+    //   })
+    // );
 
     const move = (e: PointerEvent) => {
       const delta = (this.axis === "x" ? e.clientX : e.clientY) - startPos;
@@ -60,11 +85,21 @@ export class ResizeHandle extends LitElement {
 
       this.grid.style.setProperty("--start-element-size", `${ratio(start)}fr`);
       this.grid.style.setProperty("--end-element-size", `${ratio(end)}fr`);
+
+      // this.emitDelta(delta);
     };
 
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
+
+      // this.dispatchEvent(
+      //   new CustomEvent("resize-handle:end", {
+      //     detail: { axis: this.axis },
+      //     bubbles: true,
+      //     composed: true,
+      //   })
+      // );
     };
 
     window.addEventListener("pointermove", move);
@@ -75,31 +110,32 @@ export class ResizeHandle extends LitElement {
     :host {
       touch-action: none;
       background: var(--cds-border-subtle);
-      min-block-size: var(--resizer-thickness);
-      min-inline-size: var(--resizer-thickness);
+      min-block-size: max(1px, var(--resizer-thickness));
+      min-inline-size: max(1px, var(--resizer-thickness));
     }
 
     :host([slot="handle-horizontal"]) {
-      cursor: col-resize;
+      cursor: ew-resize;
     }
     :host([slot="handle-vertical"]) {
-      cursor: row-resize;
+      cursor: ns-resize;
+      min-inline-size: 0;
     }
   `;
 
   render() {
     return html`
       <div style="block-size: 100%; inline-size: 100%; display: flex;">
-       <div>
-        ${this.pivot === "start" ? html` <slot name="pivot"></slot>` : ""}
-       </div>
+        <div>
+          ${this.pivot === "start" ? html`<slot name="pivot"></slot>` : ""}
+        </div>
         <div
           style="flex-grow: 1; display: flex; justify-content: center; align-items: center;"
         >
           <slot name="icon"></slot>
         </div>
         <div>
-        ${this.pivot === "end" ? html` <slot name="pivot"></slot>` : ""}
+          ${this.pivot === "end" ? html`<slot name="pivot"></slot>` : ""}
         </div>
       </div>
     `;
