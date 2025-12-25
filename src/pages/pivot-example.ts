@@ -14,16 +14,39 @@ class PivotExample extends LitElement {
       --start-element-size: 3fr;
       --end-element-size: 1fr;
     }
+    cds-toggle {
+      padding: 0.6rem;
+      display: block;
+    }
   `;
 
   render() {
     return html`
       <resize-grid axis="x" class="outer-grid">
-        <resize-panel slot="left"> Panel 1 </resize-panel>
+        <resize-panel slot="left">
+          <cds-toggle
+            label-b="Fluid"
+            label-a="Fixed"
+            size="sm"
+            @cds-toggle-changed=${(e: any) =>
+              e.target.parentElement.toggleAttribute("fixed", e.target.toggled)}
+          ></cds-toggle>
+        </resize-panel>
         <resize-handle slot="handle-horizontal"></resize-handle>
         <resize-panel slot="right">
           <resize-grid axis="y" class="inner-grid">
-            <resize-panel slot="top">Panel 2</resize-panel>
+            <resize-panel slot="top">
+              <cds-toggle
+                label-b="Fluid"
+                label-a="Fixed"
+                size="sm"
+                @cds-toggle-changed=${(e: any) =>
+                  e.target.parentElement.toggleAttribute(
+                    "fixed",
+                    e.target.toggled
+                  )}
+              ></cds-toggle>
+            </resize-panel>
             <resize-handle slot="handle-vertical">
               <resize-handle-pivot></resize-handle-pivot>
               <div
@@ -31,7 +54,18 @@ class PivotExample extends LitElement {
                 style="height: max(1px, var(--resizer-thickness, 1px));width: clamp(1px, var(--resizer-thickness, 1px), 100%); background: currentColor;"
               ></div>
             </resize-handle>
-            <resize-panel slot="bottom">Panel 3</resize-panel>
+            <resize-panel slot="bottom">
+              <cds-toggle
+                label-b="Fluid"
+                label-a="Fixed"
+                size="sm"
+                @cds-toggle-changed=${(e: any) =>
+                  e.target.parentElement.toggleAttribute(
+                    "fixed",
+                    e.target.toggled
+                  )}
+              ></cds-toggle>
+            </resize-panel>
           </resize-grid>
         </resize-panel>
       </resize-grid>
