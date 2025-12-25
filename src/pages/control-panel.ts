@@ -1,9 +1,12 @@
 import { LitElement, html, css } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, property } from "lit/decorators.js";
 
 @customElement("control-panel")
 export class ControlPanel extends LitElement {
+  @property({ type: Number })
   resizerThickness = 4;
+
+  @property({ type: String })
   theme = "white";
 
   static styles = css`
