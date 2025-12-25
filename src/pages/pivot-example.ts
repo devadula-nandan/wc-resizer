@@ -5,15 +5,24 @@ import "../components/resize-handle";
 import "../components/resize-handle-pivot";
 
 class PivotExample extends LitElement {
-  static styles = css``;
+  static styles = css`
+    .outer-grid {
+      --start-element-size: 1fr;
+      --end-element-size: 4fr;
+    }
+    .inner-grid {
+      --start-element-size: 3fr;
+      --end-element-size: 1fr;
+    }
+  `;
 
   render() {
     return html`
-      <resize-grid axis="x">
+      <resize-grid axis="x" class="outer-grid">
         <resize-panel slot="left"> Panel 1 </resize-panel>
         <resize-handle slot="handle-horizontal"></resize-handle>
         <resize-panel slot="right">
-          <resize-grid axis="y">
+          <resize-grid axis="y" class="inner-grid">
             <resize-panel slot="top">Panel 2</resize-panel>
             <resize-handle slot="handle-vertical">
               <resize-handle-pivot></resize-handle-pivot>

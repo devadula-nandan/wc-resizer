@@ -17,7 +17,9 @@ export class ResizeHandle extends LitElement {
 
     this.axis = this.getAttribute("slot") === "handle-vertical" ? "y" : "x";
 
-    const panels = [...this.grid.querySelectorAll("resize-panel")];
+    const panels = Array.from(
+      this.grid.querySelectorAll<HTMLElement>("resize-panel")
+    );
 
     if (this.axis === "x") {
       this.startNode = panels.find((p) => p.slot === "left")!;
@@ -28,7 +30,14 @@ export class ResizeHandle extends LitElement {
     }
 
     this.addEventListener("pointerdown", this.startDrag);
+    this.addEventListener("dblclick", this.resetSizes);
   }
+
+  resetSizes = (e: MouseEvent) => {
+    e.preventDefault();
+    this.grid.style.removeProperty("--start-element-size");
+    this.grid.style.removeProperty("--end-element-size");
+  };
 
   private get pivot() {
     const slot = this.closest("resize-panel")?.getAttribute("slot");
@@ -75,6 +84,7 @@ export class ResizeHandle extends LitElement {
     // );
 
     const move = (e: PointerEvent) => {
+      this.grid.style.transition = "none";
       const delta = (this.axis === "x" ? e.clientX : e.clientY) - startPos;
 
       const start = this.startSize + delta;
@@ -92,7 +102,7 @@ export class ResizeHandle extends LitElement {
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
-
+      this.grid.style.removeProperty("transition");
       // this.dispatchEvent(
       //   new CustomEvent("resize-handle:end", {
       //     detail: { axis: this.axis },
