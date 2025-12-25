@@ -10,11 +10,11 @@ class PivotExample extends LitElement {
   render() {
     return html`
       <resize-grid axis="x">
-        <resize-panel slot="left"> panel 1 </resize-panel>
+        <resize-panel slot="left"> Panel 1 </resize-panel>
         <resize-handle slot="handle-horizontal"></resize-handle>
         <resize-panel slot="right">
           <resize-grid axis="y">
-            <resize-panel slot="top">panel 2</resize-panel>
+            <resize-panel slot="top">Panel 2</resize-panel>
             <resize-handle slot="handle-vertical">
               <resize-handle-pivot></resize-handle-pivot>
               <svg
@@ -26,7 +26,7 @@ class PivotExample extends LitElement {
                 <rect width="1" height="1" fill="currentColor"></rect>
               </svg>
             </resize-handle>
-            <resize-panel slot="bottom">panel 3</resize-panel>
+            <resize-panel slot="bottom">Panel 3</resize-panel>
           </resize-grid>
         </resize-panel>
       </resize-grid>

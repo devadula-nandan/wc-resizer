@@ -89,8 +89,8 @@ export class ResizeHandle extends LitElement {
 
   render() {
     return html`
-      <div style="display: flex;">
-       <div style="position: relative;">
+      <div style="block-size: 100%; inline-size: 100%; display: flex;">
+       <div>
         ${this.pivot === "start" ? html` <slot name="pivot"></slot>` : ""}
        </div>
         <div
@@ -98,7 +98,7 @@ export class ResizeHandle extends LitElement {
         >
           <slot name="icon"></slot>
         </div>
-        <div style="position: relative;">
+        <div>
         ${this.pivot === "end" ? html` <slot name="pivot"></slot>` : ""}
         </div>
       </div>

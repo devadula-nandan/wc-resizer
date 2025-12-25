@@ -2,6 +2,8 @@ import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
 
 import "./pages/pivot-example";
+import "./pages/vertical-example";
+import "./pages/horizontal-example";
 import "./pages/control-panel";
 
 @customElement("app-root")
@@ -40,7 +42,7 @@ export class AppRoot extends LitElement {
       block-size: 100%;
       min-inline-size: 120px;
       min-block-size: 120px;
-      box-shadow: inset 0 0 0 1rem var(--cds-layer-02);
+      box-shadow: inset 0 0 0 1rem var(--cds-border-subtle);
     }
     [role="tabpanel"] {
       block-size: 100%;

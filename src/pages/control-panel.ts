@@ -4,6 +4,7 @@ import { customElement } from "lit/decorators.js";
 @customElement("control-panel")
 export class ControlPanel extends LitElement {
   resizerThickness = 4;
+  theme = "white";
 
   static styles = css`
     :host {
@@ -19,23 +20,34 @@ export class ControlPanel extends LitElement {
     this.resizerThickness =
       Number(localStorage.getItem("resizer-thickness")) || 4;
 
+    this.theme =
+      localStorage.getItem("theme") ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "g100"
+        : "white");
+
     this.updateApp();
   }
 
   updateApp() {
+    // Resizer
     document
       .querySelector("app-root")
       ?.style.setProperty("--resizer-thickness", `${this.resizerThickness}px`);
-
     localStorage.setItem("resizer-thickness", String(this.resizerThickness));
+
+    // Theme
+    document.documentElement.className = `cds-theme-zone-${this.theme}`;
+    localStorage.setItem("theme", this.theme);
   }
 
   render() {
     return html`
       <cds-layer level="1">
         <cds-stack gap="7">
-          <cds-heading>Resizer Controls</cds-heading>
+          <cds-heading>Controls</cds-heading>
 
+          <!-- Resizer -->
           <cds-number-input
             label="--resizer-thickness"
             min="0"
@@ -48,11 +60,32 @@ export class ControlPanel extends LitElement {
             }}
           ></cds-number-input>
 
-          <cds-button kind="danger" @click=${() => {
-            this.resizerThickness = 4;
-            this.updateApp();
-            this.requestUpdate();
-          }}>
+          <!-- Theme -->
+          <cds-dropdown
+            label="Theme"
+            .value=${this.theme}
+            @cds-dropdown-selected=${(e: any) => {
+              this.theme = e.detail.item.value;
+              this.updateApp();
+              this.requestUpdate();
+            }}
+          >
+            <cds-dropdown-item value="white">White</cds-dropdown-item>
+            <cds-dropdown-item value="g10">Gray 10</cds-dropdown-item>
+            <cds-dropdown-item value="g90">Gray 90</cds-dropdown-item>
+            <cds-dropdown-item value="g100">Dark</cds-dropdown-item>
+          </cds-dropdown>
+
+          <!-- Reset -->
+          <cds-button
+            kind="danger"
+            @click=${() => {
+              this.resizerThickness = 4;
+              this.theme = "white";
+              this.updateApp();
+              this.requestUpdate();
+            }}
+          >
             Reset
           </cds-button>
         </cds-stack>

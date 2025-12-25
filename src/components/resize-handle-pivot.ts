@@ -11,10 +11,14 @@ export class ResizeHandlePivot extends LitElement {
   static styles = css`
     :host {
       display: block;
-      background: red;
+      background: currentColor;
       block-size: var(--resizer-thickness);
       inline-size: var(--resizer-thickness);
       cursor: all-scroll;
+      position: absolute;
+    }
+    :host([position="start"]) {
+      margin-inline-start: calc(-1 * var(--resizer-thickness));
     }
   `;
 
@@ -22,6 +26,7 @@ export class ResizeHandlePivot extends LitElement {
     super.connectedCallback();
     this.setAttribute("slot", "pivot");
     this.addEventListener("pointerdown", this.handlePointerDown);
+    this.setAttribute("position", (this.parentElement as any).pivot);
   }
 
   private handlePointerDown = (e: PointerEvent) => {
