@@ -9,6 +9,9 @@ export class ResizeHandle extends LitElement {
   private startSize = 0;
   private endSize = 0;
   private axis: "x" | "y" = "x";
+  private lastTapTime = 0;
+  private lastTapX = 0;
+  private lastTapY = 0;
 
   connectedCallback() {
     super.connectedCallback();
@@ -30,7 +33,6 @@ export class ResizeHandle extends LitElement {
     }
 
     this.addEventListener("pointerdown", this.startDrag);
-    this.addEventListener("dblclick", this.resetSizes);
   }
 
   resetSizes = (e: MouseEvent) => {
@@ -45,6 +47,26 @@ export class ResizeHandle extends LitElement {
     if (slot === "left") return "end";
     if (slot === "right") return "start";
     return undefined;
+  }
+  // mobile + desktop double tap detection
+  private detectDoubleTap(e: PointerEvent) {
+    const now = Date.now();
+    const dt = now - this.lastTapTime;
+    const dx = Math.abs(e.clientX - this.lastTapX);
+    const dy = Math.abs(e.clientY - this.lastTapY);
+
+    if (dt < 300 && dx < 24 && dy < 24) {
+      if ("vibrate" in navigator) navigator.vibrate(8);
+      this.resetSizes(e as any);
+      this.lastTapTime = 0;
+      return true;
+    }
+
+    this.lastTapTime = now;
+    this.lastTapX = e.clientX;
+    this.lastTapY = e.clientY;
+
+    return false;
   }
 
   // private emitDelta(delta: number) {
@@ -65,6 +87,7 @@ export class ResizeHandle extends LitElement {
   // }
 
   startDrag = (e: PointerEvent) => {
+    if (this.detectDoubleTap(e)) return;
     e.preventDefault();
 
     const rectStart = this.startNode.getBoundingClientRect();
