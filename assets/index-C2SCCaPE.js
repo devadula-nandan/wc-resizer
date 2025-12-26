@@ -55,6 +55,9 @@
     `}};V.styles=b`
     :host {
       touch-action: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       background: var(--cds-border-subtle);
       min-block-size: max(1px, var(--resizer-thickness));
       min-inline-size: max(1px, var(--resizer-thickness));
@@ -69,7 +72,10 @@
           position: absolute;
           top: 0;
           block-size: 100%;
-          inline-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          inline-size: calc(
+            max(1px, var(--resizer-thickness)) +
+              max(0px, var(--resizer-grab-thickness))
+          );
           background-color: var(--resizer-grab-color);
         }
       }
@@ -84,7 +90,10 @@
           position: absolute;
           left: 0;
           inline-size: 100%;
-          block-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          block-size: calc(
+            max(1px, var(--resizer-thickness)) +
+              max(0px, var(--resizer-grab-thickness))
+          );
           background-color: var(--resizer-grab-color);
         }
       }
@@ -103,21 +112,34 @@
   `;V=Je([S("resize-handle")],V);var Ze=Object.getOwnPropertyDescriptor,Qe=(r,e,t,i)=>{for(var s=i>1?void 0:i?Ze(e,t):e,n=r.length-1,o;n>=0;n--)(o=r[n])&&(s=o(s)||s);return s};let F=class extends u{constructor(){super(...arguments),this.resetSizes=r=>{const e=this.getRootNode();(e instanceof ShadowRoot||e instanceof Document)&&e.querySelector("resize-handle")?.resetSizes(r)},this.handlePointerDown=r=>{const e=this.getRootNode();(e instanceof ShadowRoot||e instanceof Document)&&e.querySelector("resize-handle")?.startDrag(r)}}connectedCallback(){super.connectedCallback(),this.setAttribute("slot","pivot"),this.addEventListener("pointerdown",this.handlePointerDown),this.addEventListener("dblclick",this.resetSizes),this.setAttribute("position",this.parentElement.pivot)}render(){return m``}};F.styles=b`
     :host {
       display: block;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       background: currentColor;
       block-size: max(1px, var(--resizer-thickness));
       inline-size: max(1px, var(--resizer-thickness));
       cursor: all-scroll;
       position: absolute;
       &:before {
-          content: "";
-          position: absolute;
-          margin-block-start: calc(-1 * max(0px, var(--resizer-grab-thickness)) / 2);
-          margin-inline-start: calc(-1 * max(0px, var(--resizer-grab-thickness)) / 2);
-          inline-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
-          block-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
-          background-color: var(--resizer-grab-color);
-          z-index: 1;
-        }
+        content: "";
+        position: absolute;
+        margin-block-start: calc(
+          -1 * max(0px, var(--resizer-grab-thickness)) / 2
+        );
+        margin-inline-start: calc(
+          -1 * max(0px, var(--resizer-grab-thickness)) / 2
+        );
+        inline-size: calc(
+          max(1px, var(--resizer-thickness)) +
+            max(0px, var(--resizer-grab-thickness))
+        );
+        block-size: calc(
+          max(1px, var(--resizer-thickness)) +
+            max(0px, var(--resizer-grab-thickness))
+        );
+        background-color: var(--resizer-grab-color);
+        z-index: 1;
+      }
     }
     :host([position="start"]) {
       margin-inline-start: calc(-1 * max(1px, var(--resizer-thickness)));
