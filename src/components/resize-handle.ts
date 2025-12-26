@@ -142,6 +142,9 @@ export class ResizeHandle extends LitElement {
   static styles = css`
     :host {
       touch-action: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       background: var(--cds-border-subtle);
       min-block-size: max(1px, var(--resizer-thickness));
       min-inline-size: max(1px, var(--resizer-thickness));
@@ -156,7 +159,10 @@ export class ResizeHandle extends LitElement {
           position: absolute;
           top: 0;
           block-size: 100%;
-          inline-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          inline-size: calc(
+            max(1px, var(--resizer-thickness)) +
+              max(0px, var(--resizer-grab-thickness))
+          );
           background-color: var(--resizer-grab-color);
         }
       }
@@ -171,7 +177,10 @@ export class ResizeHandle extends LitElement {
           position: absolute;
           left: 0;
           inline-size: 100%;
-          block-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          block-size: calc(
+            max(1px, var(--resizer-thickness)) +
+              max(0px, var(--resizer-grab-thickness))
+          );
           background-color: var(--resizer-grab-color);
         }
       }

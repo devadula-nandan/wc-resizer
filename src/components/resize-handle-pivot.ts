@@ -12,21 +12,34 @@ export class ResizeHandlePivot extends LitElement {
   static styles = css`
     :host {
       display: block;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       background: currentColor;
       block-size: max(1px, var(--resizer-thickness));
       inline-size: max(1px, var(--resizer-thickness));
       cursor: all-scroll;
       position: absolute;
       &:before {
-          content: "";
-          position: absolute;
-          margin-block-start: calc(-1 * max(0px, var(--resizer-grab-thickness)) / 2);
-          margin-inline-start: calc(-1 * max(0px, var(--resizer-grab-thickness)) / 2);
-          inline-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
-          block-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
-          background-color: var(--resizer-grab-color);
-          z-index: 1;
-        }
+        content: "";
+        position: absolute;
+        margin-block-start: calc(
+          -1 * max(0px, var(--resizer-grab-thickness)) / 2
+        );
+        margin-inline-start: calc(
+          -1 * max(0px, var(--resizer-grab-thickness)) / 2
+        );
+        inline-size: calc(
+          max(1px, var(--resizer-thickness)) +
+            max(0px, var(--resizer-grab-thickness))
+        );
+        block-size: calc(
+          max(1px, var(--resizer-thickness)) +
+            max(0px, var(--resizer-grab-thickness))
+        );
+        background-color: var(--resizer-grab-color);
+        z-index: 1;
+      }
     }
     :host([position="start"]) {
       margin-inline-start: calc(-1 * max(1px, var(--resizer-thickness)));
