@@ -35,6 +35,7 @@ export class AppRoot extends LitElement {
       flex: 0 0 24rem;
       background-color: var(--cds-layer-01);
       border-inline-start: 1px solid var(--cds-border-subtle);
+      z-index: 1;
     }
     .resize {
       resize: both;
