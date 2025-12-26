@@ -11,6 +11,7 @@ export class ResizeGrid extends LitElement {
       display: grid;
       block-size: 100%;
       inline-size: 100%;
+      overflow: hidden;
 
       transition: grid-template-columns 180ms cubic-bezier(0.25, 0.9, 0.25, 1),
         grid-template-rows 180ms cubic-bezier(0.25, 0.9, 0.25, 1);

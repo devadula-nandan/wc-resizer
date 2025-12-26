@@ -146,25 +146,56 @@ export class ResizeHandle extends LitElement {
       min-block-size: max(1px, var(--resizer-thickness));
       min-inline-size: max(1px, var(--resizer-thickness));
     }
-
     :host([slot="handle-horizontal"]) {
       cursor: ew-resize;
+
+      .icon-container {
+        position: relative;
+        &:before {
+          content: "";
+          position: absolute;
+          top: 0;
+          block-size: 100%;
+          inline-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          background-color: var(--resizer-grab-color);
+        }
+      }
     }
     :host([slot="handle-vertical"]) {
       cursor: ns-resize;
       min-inline-size: 0;
+      .icon-container {
+        position: relative;
+        &:before {
+          content: "";
+          position: absolute;
+          left: 0;
+          inline-size: 100%;
+          block-size: calc(max(1px, var(--resizer-thickness)) + max(0px, var(--resizer-grab-thickness)));
+          background-color: var(--resizer-grab-color);
+        }
+      }
+    }
+    .handle-content {
+      block-size: 100%;
+      inline-size: 100%;
+      display: flex;
+    }
+    .icon-container {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   `;
 
   render() {
     return html`
-      <div style="block-size: 100%; inline-size: 100%; display: flex;">
+      <div class="handle-content">
         <div>
           ${this.pivot === "start" ? html`<slot name="pivot"></slot>` : ""}
         </div>
-        <div
-          style="flex-grow: 1; display: flex; justify-content: center; align-items: center;"
-        >
+        <div class="icon-container" part="icon-container">
           <slot name="icon"></slot>
         </div>
         <div>

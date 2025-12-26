@@ -6,6 +6,12 @@ export class ControlPanel extends LitElement {
   @property({ type: Number })
   resizerThickness = 4;
 
+  @property({ type: Number })
+  resizerGrabThickness = 8;
+
+  @property({ type: Boolean })
+  resizerGrabColorEnabled = false;
+
   @property({ type: String })
   theme = "white";
 
@@ -23,6 +29,14 @@ export class ControlPanel extends LitElement {
     this.resizerThickness =
       Number(localStorage.getItem("resizer-thickness")) || 4;
 
+    this.resizerGrabThickness =
+      Number(localStorage.getItem("resizer-grab-thickness")) || 8;
+
+    const storedGrabColor = localStorage.getItem("resizer-grab-color-enabled");
+
+    this.resizerGrabColorEnabled =
+      storedGrabColor === null ? false : storedGrabColor === "true";
+
     this.theme =
       localStorage.getItem("theme") ||
       (window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -33,11 +47,31 @@ export class ControlPanel extends LitElement {
   }
 
   updateApp() {
-    // Resizer
-    document
-      .querySelector("app-root")
-      ?.style.setProperty("--resizer-thickness", `${this.resizerThickness}px`);
+    const app = document.querySelector("app-root");
+
+    // Resizer thickness
+    app?.style.setProperty("--resizer-thickness", `${this.resizerThickness}px`);
     localStorage.setItem("resizer-thickness", String(this.resizerThickness));
+
+    app?.style.setProperty(
+      "--resizer-grab-thickness",
+      `${this.resizerGrabThickness}px`
+    );
+    localStorage.setItem(
+      "resizer-grab-thickness",
+      String(this.resizerGrabThickness)
+    );
+
+    app?.style.setProperty(
+      "--resizer-grab-color",
+      this.resizerGrabColorEnabled
+        ? "var(--cds-background-selected)"
+        : "transparent"
+    );
+    localStorage.setItem(
+      "resizer-grab-color-enabled",
+      String(this.resizerGrabColorEnabled)
+    );
 
     // Theme
     document.documentElement.className = `cds-theme-zone-${this.theme}`;
@@ -50,7 +84,7 @@ export class ControlPanel extends LitElement {
         <cds-stack gap="7">
           <cds-heading>Resizer</cds-heading>
 
-          <!-- Resizer -->
+          <!-- Resizer Thickness -->
           <cds-number-input
             label="--resizer-thickness"
             min="0"
@@ -63,6 +97,27 @@ export class ControlPanel extends LitElement {
               this.updateApp();
             }}
           ></cds-number-input>
+          <cds-number-input
+            label="--resizer-grab-thickness"
+            min="0"
+            max="32"
+            step="1"
+            invalid-text="Are you sure about that?"
+            .value=${this.resizerGrabThickness}
+            @cds-number-input=${(e: any) => {
+              this.resizerGrabThickness = Number(e.target.value);
+              this.updateApp();
+            }}
+          ></cds-number-input>
+          <cds-checkbox
+            ?checked=${this.resizerGrabColorEnabled}
+            @cds-checkbox-changed=${(e: any) => {
+              this.resizerGrabColorEnabled = e.target.checked;
+              this.updateApp();
+            }}
+          >
+            Show grabbable area
+          </cds-checkbox>
 
           <!-- Theme -->
           <cds-dropdown
@@ -85,6 +140,8 @@ export class ControlPanel extends LitElement {
             kind="danger"
             @click=${() => {
               this.resizerThickness = 4;
+              this.resizerGrabThickness = 8;
+              this.resizerGrabColorEnabled = false;
               this.theme = "white";
               this.updateApp();
               this.requestUpdate();
