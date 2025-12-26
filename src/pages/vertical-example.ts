@@ -11,14 +11,10 @@ class VerticalExample extends LitElement {
       <resize-grid axis="y">
         <resize-panel slot="top">Panel 1</resize-panel>
         <resize-handle slot="handle-vertical">
-          <svg
+          <div
             slot="icon"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1 1"
-            style="width: max(1px, var(--resizer-thickness, 1px));height: max(1px, var(--resizer-thickness, 1px));"
-          >
-            <rect width="1" height="1" fill="currentColor"></rect>
-          </svg>
+            style="width: max(1px, var(--resizer-thickness, 1px));height: max(1px, var(--resizer-thickness, 1px)); background: currentColor;"
+          ></div>
         </resize-handle>
         <resize-panel slot="bottom">Panel 2</resize-panel>
       </resize-grid>
