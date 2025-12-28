@@ -4,13 +4,13 @@ import { customElement, property } from "lit/decorators.js";
 @customElement("control-panel")
 export class ControlPanel extends LitElement {
   @property({ type: Number })
-  resizerThickness = 4;
+  resizeHandleSize = 4;
 
   @property({ type: Number })
-  resizerGrabThickness = 8;
+  resizeHandleGrabArea = 8;
 
   @property({ type: Boolean })
-  resizerGrabColorEnabled = false;
+  resizeHandleGrabBg = false;
 
   @property({ type: String })
   theme = "white";
@@ -26,15 +26,15 @@ export class ControlPanel extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    this.resizerThickness =
-      Number(localStorage.getItem("resizer-thickness")) || 4;
+    this.resizeHandleSize =
+      Number(localStorage.getItem("resize-handle-size")) || 4;
 
-    this.resizerGrabThickness =
-      Number(localStorage.getItem("resizer-grab-thickness")) || 8;
+    this.resizeHandleGrabArea =
+      Number(localStorage.getItem("resize-handle-grab-area")) || 8;
 
-    const storedGrabColor = localStorage.getItem("resizer-grab-color-enabled");
+    const storedGrabColor = localStorage.getItem("--resize-handle-grab-bg");
 
-    this.resizerGrabColorEnabled =
+    this.resizeHandleGrabBg =
       storedGrabColor === null ? false : storedGrabColor === "true";
 
     this.theme =
@@ -50,27 +50,28 @@ export class ControlPanel extends LitElement {
     const app = document.querySelector("app-root");
 
     // Resizer thickness
-    app?.style.setProperty("--resizer-thickness", `${this.resizerThickness}px`);
-    localStorage.setItem("resizer-thickness", String(this.resizerThickness));
+    app?.style.setProperty(
+      "--resize-handle-size",
+      `${this.resizeHandleSize}px`
+    );
+    localStorage.setItem("resize-handle-size", String(this.resizeHandleSize));
 
     app?.style.setProperty(
-      "--resizer-grab-thickness",
-      `${this.resizerGrabThickness}px`
+      "--resize-handle-grab-area",
+      `${this.resizeHandleGrabArea}px`
     );
     localStorage.setItem(
-      "resizer-grab-thickness",
-      String(this.resizerGrabThickness)
+      "resize-handle-grab-area",
+      String(this.resizeHandleGrabArea)
     );
 
     app?.style.setProperty(
-      "--resizer-grab-color",
-      this.resizerGrabColorEnabled
-        ? "var(--cds-background-selected)"
-        : "transparent"
+      "--resize-handle-grab-bg",
+      this.resizeHandleGrabBg ? "var(--cds-background-selected)" : "transparent"
     );
     localStorage.setItem(
-      "resizer-grab-color-enabled",
-      String(this.resizerGrabColorEnabled)
+      "--resize-handle-grab-bg",
+      String(this.resizeHandleGrabBg)
     );
 
     // Theme
@@ -86,33 +87,33 @@ export class ControlPanel extends LitElement {
 
           <!-- Resizer Thickness -->
           <cds-number-input
-            label="--resizer-thickness"
+            label="--resize-handle-size"
             min="0"
             max="16"
             step="1"
             invalid-text="Are you sure about that?"
-            .value=${this.resizerThickness}
+            .value=${this.resizeHandleSize}
             @cds-number-input=${(e: any) => {
-              this.resizerThickness = Number(e.target.value);
+              this.resizeHandleSize = Number(e.target.value);
               this.updateApp();
             }}
           ></cds-number-input>
           <cds-number-input
-            label="--resizer-grab-thickness"
+            label="--resize-handle-grab-area"
             min="0"
             max="32"
             step="1"
             invalid-text="Are you sure about that?"
-            .value=${this.resizerGrabThickness}
+            .value=${this.resizeHandleGrabArea}
             @cds-number-input=${(e: any) => {
-              this.resizerGrabThickness = Number(e.target.value);
+              this.resizeHandleGrabArea = Number(e.target.value);
               this.updateApp();
             }}
           ></cds-number-input>
           <cds-checkbox
-            ?checked=${this.resizerGrabColorEnabled}
+            ?checked=${this.resizeHandleGrabBg}
             @cds-checkbox-changed=${(e: any) => {
-              this.resizerGrabColorEnabled = e.target.checked;
+              this.resizeHandleGrabBg = e.target.checked;
               this.updateApp();
             }}
           >
@@ -139,9 +140,9 @@ export class ControlPanel extends LitElement {
           <cds-button
             kind="danger"
             @click=${() => {
-              this.resizerThickness = 4;
-              this.resizerGrabThickness = 8;
-              this.resizerGrabColorEnabled = false;
+              this.resizeHandleSize = 4;
+              this.resizeHandleGrabArea = 8;
+              this.resizeHandleGrabBg = false;
               this.theme = "white";
               this.updateApp();
               this.requestUpdate();
