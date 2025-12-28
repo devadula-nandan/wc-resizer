@@ -32,8 +32,16 @@ export class ResizeHandle extends LitElement {
       touch-action: none;
       user-select: none;
       background: var(--resize-handle-bg, var(--cds-border-subtle, #e0e0e0));
+      transition: background-color 350ms cubic-bezier(0.22, 1, 0.36, 1);
       position: relative;
       cursor: var(--resize-handle-cursor, grab);
+    }
+
+    :host(:hover) {
+      background: var(
+        --resize-handle-bg-hover,
+        var(--cds-border-interactive, #c6c6c6)
+      );
     }
 
     :host([data-axis="horizontal"]) {
@@ -48,6 +56,10 @@ export class ResizeHandle extends LitElement {
 
     :host([data-dragging]) {
       cursor: var(--resize-handle-cursor-active, grabbing);
+      background: var(
+        --resize-handle-bg-active,
+        var(--cds-border-interactive, #c6c6c6)
+      );
     }
 
     :host::before {
@@ -56,6 +68,10 @@ export class ResizeHandle extends LitElement {
       inset: calc(-1 * var(--resize-handle-grab-area, 4px));
       background: var(--resize-handle-grab-bg, transparent);
       z-index: 1;
+    }
+
+    :host(:hover)::before {
+      background: var(--resize-handle-grab-bg-hover, var(--resize-handle-grab-bg));
     }
 
     .handle-content {

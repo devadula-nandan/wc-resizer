@@ -14,6 +14,7 @@ export class AppRoot extends LitElement {
   static styles = css`
     :host {
       box-sizing: border-box;
+      --resize-handle-bg-active: var(--cds-border-interactive, #c6c6c6);
     }
     cds-tabs {
       background-color: var(--cds-layer-01);
@@ -28,7 +29,7 @@ export class AppRoot extends LitElement {
       max-inline-size: calc(100% - 24rem - 1px);
       max-block-size: 100%;
     }
-    .left.fw{
+    .left.fw {
       max-inline-size: 100%;
     }
     .right {
