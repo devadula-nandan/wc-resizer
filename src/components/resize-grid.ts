@@ -82,15 +82,10 @@ export class ResizeGrid extends LitElement {
   }
 
   render() {
-    const slots =
-      this.axis === "horizontal"
-        ? ["start", "handle", "end"]
-        : ["start", "handle", "end"];
-
     return html`
-      <slot name="${slots[0]}"></slot>
-      <slot name="${slots[1]}"></slot>
-      <slot name="${slots[2]}"></slot>
+      <slot name="start"></slot>
+      <slot name="handle"></slot>
+      <slot name="end"></slot>
     `;
   }
 }
