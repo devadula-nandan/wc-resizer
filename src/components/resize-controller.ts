@@ -1,18 +1,17 @@
 import type { Axis, ResizeEventDetail, ResizeState } from "./types.js";
-import { ResizeGrid } from "./resize-grid.js";
 
 // ============================================================================
-// RESIZE CONTROLLER - Central state management
+// RESIZE CONTROLLER - Pure calculation logic (no DOM manipulation)
 // ============================================================================
 
 export class ResizeController {
   private startPanel: HTMLElement | null = null;
   private endPanel: HTMLElement | null = null;
-  private grid: ResizeGrid | null = null;
+  private grid: HTMLElement | null = null;
   private axis: Axis;
   private state: ResizeState;
 
-  constructor(private host: HTMLElement, axis: Axis) {
+  constructor(_host: HTMLElement, axis: Axis) {
     this.axis = axis;
     this.state = {
       startSize: 0,
@@ -21,7 +20,7 @@ export class ResizeController {
     };
   }
 
-  connect(grid: ResizeGrid, startPanel: HTMLElement, endPanel: HTMLElement) {
+  connect(grid: HTMLElement, startPanel: HTMLElement, endPanel: HTMLElement) {
     this.grid = grid;
     this.startPanel = startPanel;
     this.endPanel = endPanel;
@@ -67,16 +66,6 @@ export class ResizeController {
       delta,
       axis: this.axis,
     };
-  }
-
-  applySizes(detail: ResizeEventDetail) {
-    if (!this.grid) return;
-    this.grid.setSizes(detail.startRatio, detail.endRatio);
-  }
-
-  reset() {
-    if (!this.grid) return;
-    this.grid.resetSizes();
   }
 
   getState(): Readonly<ResizeState> {

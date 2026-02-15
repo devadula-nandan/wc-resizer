@@ -1,28 +1,41 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { ResizeController } from "./resize-controller.js";
-import { ResizeStartEvent, ResizeMoveEvent, ResizeEndEvent } from "./types.js";
-import { ResizeGrid } from "./resize-grid.js";
-import { ResizePanel } from "./resize-panel.js";
+import {
+  HandleDragStartEvent,
+  HandleDragMoveEvent,
+  HandleDragEndEvent,
+  HandleDoubleTapEvent,
+} from "./types.js";
 
 // ============================================================================
-// RESIZE HANDLE - Drag handle
+// RESIZE HANDLE - Drag handle (only emits delta and double-tap)
 // ============================================================================
+
+// Constants
+const KEYBOARD_STEP_PX = 10;
+const SHIFT_MULTIPLIER = 5;
+const COLLAPSED_THRESHOLD = 0;
+const ARIA_VALUE_MIN = 0;
+const ARIA_VALUE_MAX = 100;
+const ARIA_VALUE_DEFAULT = 50;
 
 @customElement("resize-handle")
 export class ResizeHandle extends LitElement {
-  private controller: ResizeController | null = null;
-  private grid: ResizeGrid | null = null;
   private lastTapTime = 0;
   private lastTapX = 0;
   private lastTapY = 0;
   private isDragging = false;
+  private startPos = 0;
+  private keyboardStep = KEYBOARD_STEP_PX;
 
   @property({ type: Number, attribute: "double-tap-threshold" })
   doubleTapThreshold = 300;
 
   @property({ type: Number, attribute: "double-tap-distance" })
   doubleTapDistance = 24;
+
+  @property({ type: String })
+  ariaLabel = "Resize handle";
 
   static styles = css`
     :host {
@@ -44,18 +57,27 @@ export class ResizeHandle extends LitElement {
       );
     }
 
+    :host(:focus) {
+      outline: 1px solid
+        var(--resize-handle-focus-color, var(--cds-focus, #c6c6c6));
+      outline-offset: clamp(-1px, calc(2px - var(--resize-handle-size)), 0px);
+      background: var(
+        --resize-handle-bg-focus,
+        var(--cds-border-interactive, #c6c6c6)
+      );
+    }
+
     :host([data-axis="horizontal"]) {
       cursor: ew-resize;
-      min-inline-size: var(--resize-handle-size, 4px);
+      min-inline-size: max(var(--resize-handle-size), 1px);
     }
 
     :host([data-axis="vertical"]) {
       cursor: ns-resize;
-      min-block-size: var(--resize-handle-size, 4px);
+      min-block-size: max(var(--resize-handle-size), 1px);
     }
 
     :host([data-dragging]) {
-      cursor: var(--resize-handle-cursor-active, grabbing);
       background: var(
         --resize-handle-bg-active,
         var(--cds-border-interactive, #c6c6c6)
@@ -71,7 +93,10 @@ export class ResizeHandle extends LitElement {
     }
 
     :host(:hover)::before {
-      background: var(--resize-handle-grab-bg-hover, var(--resize-handle-grab-bg));
+      background: var(
+        --resize-handle-grab-bg-hover,
+        var(--resize-handle-grab-bg)
+      );
     }
 
     .handle-content {
@@ -87,55 +112,36 @@ export class ResizeHandle extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.initialize();
     this.addEventListener("pointerdown", this.handlePointerDown);
+    this.addEventListener("keydown", this.handleKeyDown);
+    this.setAttribute("slot", "handle");
+
+    // Set axis attribute on initial render for proper styling
+    const grid = this.closest("resize-grid");
+    if (grid) {
+      const axis = grid.getAttribute("axis") || "horizontal";
+      this.dataset.axis = axis;
+    }
+
+    // Set accessibility attributes
+    this.setAttribute("role", "separator");
+    this.setAttribute("tabindex", "0");
+    this.setAttribute("aria-label", this.ariaLabel);
+
+    // Set aria-orientation based on axis
+    const axis = this.dataset.axis || "horizontal";
+    this.setAttribute("aria-orientation", axis);
+
+    // Initialize ARIA value attributes
+    this.setAttribute("aria-valuemin", String(ARIA_VALUE_MIN));
+    this.setAttribute("aria-valuemax", String(ARIA_VALUE_MAX));
+    this.setAttribute("aria-valuenow", String(ARIA_VALUE_DEFAULT));
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.cleanup();
     this.removeEventListener("pointerdown", this.handlePointerDown);
-  }
-
-  private initialize() {
-    // Find the grid
-    this.grid = this.closest("resize-grid") as ResizeGrid | null;
-
-    if (!this.grid) {
-      console.error("resize-handle must be inside a resize-grid");
-      return;
-    }
-
-    const axis = this.grid.getAxis();
-    this.dataset.axis = axis;
-
-    // Find panels based on grid axis
-    const panels = Array.from(
-      this.grid.querySelectorAll<ResizePanel>("resize-panel")
-    );
-
-    const startPanel = panels.find((p) => p.position === "start");
-    const endPanel = panels.find((p) => p.position === "end");
-
-    if (!startPanel || !endPanel) {
-      console.error("resize-grid must contain start and end panels");
-      return;
-    }
-
-    // Create controller
-    this.controller = new ResizeController(this, axis);
-    this.controller.connect(this.grid, startPanel, endPanel);
-
-    // Set slot
-    this.setAttribute("slot", "handle");
-  }
-
-  private cleanup() {
-    if (this.controller) {
-      this.controller.disconnect();
-      this.controller = null;
-    }
-    this.grid = null;
+    this.removeEventListener("keydown", this.handleKeyDown);
   }
 
   private detectDoubleTap(e: PointerEvent): boolean {
@@ -163,15 +169,124 @@ export class ResizeHandle extends LitElement {
     return false;
   }
 
-  private handlePointerDown = (e: PointerEvent) => {
-    if (!this.controller || !this.controller.isConnected()) {
-      console.warn("ResizeHandle not properly initialized");
+  private handleKeyDown = (e: KeyboardEvent) => {
+    const grid = this.closest("resize-grid");
+    if (!grid) return;
+
+    const axis = grid.getAttribute("axis") || "horizontal";
+    const isHorizontal = axis === "horizontal";
+
+    let delta = 0;
+
+    // Handle arrow keys based on axis
+    if (isHorizontal) {
+      if (e.key === "ArrowLeft") {
+        delta = -this.keyboardStep;
+        e.preventDefault();
+      } else if (e.key === "ArrowRight") {
+        delta = this.keyboardStep;
+        e.preventDefault();
+      }
+    } else {
+      if (e.key === "ArrowUp") {
+        delta = -this.keyboardStep;
+        e.preventDefault();
+      } else if (e.key === "ArrowDown") {
+        delta = this.keyboardStep;
+        e.preventDefault();
+      }
+    }
+
+    // Multiply delta by shift multiplier if shift key is held
+    if (e.shiftKey && delta !== 0) {
+      delta *= SHIFT_MULTIPLIER;
+    }
+
+    // Handle Home key - reset to default
+    if (e.key === "Home") {
+      this.dispatchEvent(new HandleDoubleTapEvent());
+      e.preventDefault();
       return;
     }
 
+    // Handle PageUp - collapse start panel (expand end panel)
+    if (e.key === "PageUp") {
+      this.dispatchEvent(
+        new CustomEvent("handle:collapse", {
+          detail: { panel: "start" },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      e.preventDefault();
+      return;
+    }
+
+    // Handle PageDown - collapse end panel (expand start panel)
+    if (e.key === "PageDown") {
+      this.dispatchEvent(
+        new CustomEvent("handle:collapse", {
+          detail: { panel: "end" },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      e.preventDefault();
+      return;
+    }
+
+    if (delta !== 0) {
+      // Emit keyboard resize events
+      this.dispatchEvent(
+        new CustomEvent("handle:keyboardstart", {
+          detail: { delta },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+
+      this.dispatchEvent(
+        new CustomEvent("handle:keyboardmove", {
+          detail: { delta },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+
+      this.dispatchEvent(
+        new CustomEvent("handle:keyboardend", {
+          detail: { delta },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+  };
+
+  updateAriaAttributes(startRatio: number, endRatio: number) {
+    // Set aria-valuenow as percentage (0-100)
+    const startPercent = Math.round(startRatio * ARIA_VALUE_MAX);
+    this.setAttribute("aria-valuenow", String(startPercent));
+    this.setAttribute("aria-valuemin", String(ARIA_VALUE_MIN));
+    this.setAttribute("aria-valuemax", String(ARIA_VALUE_MAX));
+
+    // Update aria-label based on state
+    const isStartCollapsed = startRatio < COLLAPSED_THRESHOLD;
+    const isEndCollapsed = endRatio < COLLAPSED_THRESHOLD;
+
+    if (isStartCollapsed) {
+      this.setAttribute("aria-label", "Resize handle (start panel collapsed)");
+    } else if (isEndCollapsed) {
+      this.setAttribute("aria-label", "Resize handle (end panel collapsed)");
+    } else {
+      this.setAttribute("aria-label", this.ariaLabel);
+    }
+  }
+
+  private handlePointerDown = (e: PointerEvent) => {
     // Handle double-tap to reset
     if (this.detectDoubleTap(e)) {
-      this.controller.reset();
+      this.dispatchEvent(new HandleDoubleTapEvent());
       return;
     }
 
@@ -180,42 +295,33 @@ export class ResizeHandle extends LitElement {
   };
 
   private startDrag(e: PointerEvent) {
-    if (!this.controller || !this.grid) return;
-
-    const axis = this.grid.getAxis();
-    const isHorizontal = axis === "horizontal";
-
-    // Capture initial sizes
-    if (!this.controller.captureInitialSizes()) {
-      console.warn("Failed to capture initial panel sizes");
+    // Get axis from parent grid
+    const grid = this.closest("resize-grid");
+    if (!grid) {
+      console.error("resize-handle must be inside a resize-grid");
       return;
     }
 
-    const startPos = isHorizontal ? e.clientX : e.clientY;
+    const axis = grid.getAttribute("axis") || "horizontal";
+    const isHorizontal = axis === "horizontal";
+
+    this.dataset.axis = axis;
+    this.startPos = isHorizontal ? e.clientX : e.clientY;
     this.isDragging = true;
     this.dataset.dragging = "";
 
-    // Disable transitions during drag
-    this.grid.disableTransitions = true;
-
-    // Dispatch start event
-    this.dispatchEvent(new ResizeStartEvent(axis));
+    // Emit drag start event
+    this.dispatchEvent(new HandleDragStartEvent(this.startPos));
 
     const handleMove = (e: PointerEvent) => {
-      if (!this.controller) return;
-
       const currentPos = isHorizontal ? e.clientX : e.clientY;
-      const delta = currentPos - startPos;
+      const delta = currentPos - this.startPos;
 
-      const detail = this.controller.calculateSizes(delta);
-      this.controller.applySizes(detail);
-
-      this.dispatchEvent(new ResizeMoveEvent(detail));
+      // Emit delta only
+      this.dispatchEvent(new HandleDragMoveEvent(delta));
     };
 
     const handleEnd = (e: PointerEvent) => {
-      if (!this.controller || !this.grid) return;
-
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleEnd);
       window.removeEventListener("pointercancel", handleEnd);
@@ -223,24 +329,16 @@ export class ResizeHandle extends LitElement {
       this.isDragging = false;
       delete this.dataset.dragging;
 
-      // Re-enable transitions
-      this.grid.disableTransitions = false;
-
       const currentPos = isHorizontal ? e.clientX : e.clientY;
-      const delta = currentPos - startPos;
-      const detail = this.controller.calculateSizes(delta);
+      const delta = currentPos - this.startPos;
 
-      this.dispatchEvent(new ResizeEndEvent(detail));
+      // Emit final delta
+      this.dispatchEvent(new HandleDragEndEvent(delta));
     };
 
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleEnd);
     window.addEventListener("pointercancel", handleEnd);
-  }
-
-  // Public API
-  public reset() {
-    this.controller?.reset();
   }
 
   render() {

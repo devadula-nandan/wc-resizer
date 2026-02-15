@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["mocha"],
+    "noEmit": false,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*.test.ts"]
+}

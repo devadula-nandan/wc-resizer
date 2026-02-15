@@ -1,12 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement } from "lit/decorators.js";
 
-/** Public interface of <resize-handle> */
-interface ResizeHandle extends HTMLElement {
-  startDrag(e: PointerEvent): void;
-  resetSizes(e: MouseEvent): void;
-}
-
 @customElement("resize-handle-pivot")
 export class ResizeHandlePivot extends LitElement {
   static styles = css`
@@ -54,22 +48,28 @@ export class ResizeHandlePivot extends LitElement {
     this.setAttribute("position", (this.parentElement as any).pivot);
   }
 
-  private resetSizes = (e: MouseEvent) => {
-    const root = this.getRootNode();
-
-    if (root instanceof ShadowRoot || root instanceof Document) {
-      const handle = root.querySelector("resize-handle") as ResizeHandle | null;
-      handle?.resetSizes(e);
-    }
+  private resetSizes = (_e: MouseEvent) => {
+    // Double-click to reset - handled by resize-handle via event bubbling
+    this.dispatchEvent(
+      new CustomEvent("handle:doubletap", {
+        bubbles: true,
+        composed: true,
+      }),
+    );
   };
 
   private handlePointerDown = (e: PointerEvent) => {
-    const root = this.getRootNode();
-
-    if (root instanceof ShadowRoot || root instanceof Document) {
-      const handle = root.querySelector("resize-handle") as ResizeHandle | null;
-      handle?.startDrag(e);
-    }
+    // Forward pointer events to resize-handle via event bubbling
+    this.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        composed: true,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        pointerId: e.pointerId,
+        pointerType: e.pointerType,
+      }),
+    );
   };
 
   render() {
